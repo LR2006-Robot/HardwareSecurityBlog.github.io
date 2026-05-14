@@ -60,7 +60,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <link rel="icon" type="image/x-icon" href="/HardwareSecurityBlog.github.io/favicon.ico">
     <link rel="shortcut icon" href="/HardwareSecurityBlog.github.io/favicon.ico" type="image/x-icon">
-<meta name="generator" content="Hexo 8.1.2"></head>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.2"></head>
 <body>
     <!-- 背景轮播图功能 -->
     <section class="hidden-xs">
@@ -120,20 +122,48 @@
                 
                 
                 
-                <li class="">
-                    <a href="/HardwareSecurityBlog.github.io/categories">
+                <li class="dropdown">
+                    <!-- TODO 添加hover dropdown效果 -->
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
                         <i class="fa fa-list"></i>分类
                     </a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li>
+                            <a href="/HardwareSecurityBlog.github.io/categories/%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/">入门教程</a>
+                        </li>
+                        
+                        
+                        
+                    </ul>
                 </li>
                 
                 
                 
                 
                 
-                <li class="">
-                    <a href="/HardwareSecurityBlog.github.io/tags">
+                <li class="dropdown">
+                    <!-- TODO 添加hover dropdown效果 -->
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
                         <i class="fa fa-tags"></i>标签
                     </a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li>
+                            <a href="/HardwareSecurityBlog.github.io/tags/%E7%A1%AC%E4%BB%B6%E5%AE%89%E5%85%A8/">硬件安全</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/HardwareSecurityBlog.github.io/tags/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">侧信道攻击</a>
+                        </li>
+                        
+                        
+                        
+                    </ul>
                 </li>
                 
                 
@@ -210,7 +240,7 @@
       	var [month, day] = article.date.split('-')
         ''
         ''
-        var defaultPreview = '/HardwareSecurityBlog.github.io/imgs/preview/preview2.jpg'
+        var defaultPreview = '/HardwareSecurityBlog.github.io/imgs/preview/preview4.jpg'
         var preview = article.preview ? article.preview : defaultPreview
         var path = '/HardwareSecurityBlog.github.io/' + article.path
         resultList.append(`<div class="article well clearfix article-body article-excerpt" data-aos="flip-up">
@@ -407,6 +437,12 @@
         </div>
         <ul class="list-group list-group-flush">
             
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/HardwareSecurityBlog.github.io/2026/05/14/test/">硬件安全入门：什么是侧信道攻击</a>
+                </span>
+            </li>
+            
         </ul>
     </div>
 </aside>
@@ -422,6 +458,12 @@
         </div>
         <ul class="list-group list-group-flush">
             
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/HardwareSecurityBlog.github.io/2026/05/14/test/">硬件安全入门：什么是侧信道攻击</a>
+                </span>
+            </li>
             
         </ul>
     </div>
@@ -451,6 +493,10 @@
             <div class="tab-content">
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
+    
+    <a href="/HardwareSecurityBlog.github.io/tags/%E7%A1%AC%E4%BB%B6%E5%AE%89%E5%85%A8/" style="font-size: 10.213557090676048px;" class="tag-cloud-link">硬件安全</a>
+    
+    <a href="/HardwareSecurityBlog.github.io/tags/%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/" style="font-size: 15.25701652102677px;" class="tag-cloud-link">侧信道攻击</a>
     
 </div>
                 
@@ -537,7 +583,7 @@
     window.slideConfig = {
       prefix: '/HardwareSecurityBlog.github.io/imgs/slide/background',
       ext: 'jpg',
-      maxCount: '6'
+      maxCount: '14'
     }
 </script>
 
