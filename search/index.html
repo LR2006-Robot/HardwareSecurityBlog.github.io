@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="author" content="Dorange">
     
-    <meta name="description" content="聚焦于物理硬件安全的菜鸟blog">
+    <meta name="description" content="尝试物理硬件安全的菜鸟blog">
     
     
     
@@ -60,9 +60,113 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <link rel="icon" type="image/x-icon" href="/HardwareSecurityBlog.github.io/favicon.ico">
     <link rel="shortcut icon" href="/HardwareSecurityBlog.github.io/favicon.ico" type="image/x-icon">
-<!-- hexo injector head_end start -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
-<!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.2"></head>
+    <style>
+/* 文章主容器 */
+#article .article-body,
+#article-list .article-body {
+    background-color: rgba(230, 238, 232, 0.65) !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3) !important;
+}
+
+/* 侧边栏/卡片也一起加深，不然还是淡 */
+.panel,
+.panel2,
+.panel-gal,
+.list-group-item,
+.breadcrumb,
+.breadcrumb-gal {
+    background-color: rgba(230, 238, 232, 0.65) !important;
+    opacity: 1 !important;
+}
+
+/* 文章内容区单独加白背景，文字更清晰 */
+.content-article {
+    background-color: rgba(255, 255, 255, 0.65) !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+}
+
+/* 加深文字颜色，对比度拉满 */
+.content-article p,
+.content-article h1,
+.content-article h2,
+.content-article h3,
+.content-article li {
+    color: #1a1a1a !important;
+    font-weight: 500 !important;
+}
+
+/* 目录基础样式 */
+#toc-panel {
+    width: 100%;
+    background-color: rgba(230, 238, 232, 0.65) !important;
+    box-shadow: 0 0 8px #000 !important;
+    margin-bottom: 30px !important;
+    z-index: 999 !important;
+}
+#toc-panel.fixed {
+    position: fixed !important;
+    top: 80px !important;
+    width: 350px !important;
+}
+#toc-panel .panel-heading {
+    color: #fff !important;
+    background-color: rgba(10,10,0,.7) !important;
+    border-color: #000 !important;
+}
+#toc-list {
+    max-height: calc(100vh - 180px) !important;
+    overflow-y: auto !important;
+}
+#toc-list li {
+    background-color: transparent !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    transition: all 0.3s ease !important;
+}
+#toc-list li a {
+    color: #3d4450 !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+#toc-list li.toc-level-3 {
+    padding-left: 30px !important;
+}
+#toc-list li.active {
+    background-color: rgba(107, 105, 214, 0.2) !important;
+}
+#toc-list li.active a {
+    color: #6b69d6 !important;
+    font-weight: bold !important;
+}
+
+/* 修复侧边栏宽度 */
+#sidebar {
+    position: relative !important;
+}
+    </style>
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<!-- 🔥 目录吸顶JS脚本（和你参考网站完全一致） -->
+<script>
+$(window).scroll(function() {
+    var toc = $("#toc-panel");
+    var sidebar = $("#sidebar");
+    var scrollTop = $(window).scrollTop();
+    var offsetTop = sidebar.offset().top;
+
+    if (scrollTop > offsetTop - 80) {
+        toc.addClass("fixed");
+    } else {
+        toc.removeClass("fixed");
+    }
+});
+</script>
 <body>
     <!-- 背景轮播图功能 -->
     <section class="hidden-xs">
@@ -157,6 +261,10 @@
                             <a href="/HardwareSecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE漏洞复现</a>
                         </li>
                         
+                        <li>
+                            <a href="/HardwareSecurityBlog.github.io/tags/%E5%AE%8C%E6%95%B4%E6%94%BB%E5%87%BB%E9%93%BE/">完整攻击链</a>
+                        </li>
+                        
                         
                         
                     </ul>
@@ -236,7 +344,7 @@
       	var [month, day] = article.date.split('-')
         ''
         ''
-        var defaultPreview = '/HardwareSecurityBlog.github.io/imgs/preview/preview4.jpg'
+        var defaultPreview = '/HardwareSecurityBlog.github.io/imgs/preview/preview2.jpg'
         var preview = article.preview ? article.preview : defaultPreview
         var path = '/HardwareSecurityBlog.github.io/' + article.path
         resultList.append(`<div class="article well clearfix article-body article-excerpt" data-aos="flip-up">
@@ -392,6 +500,9 @@
 
                 </div>
                 <aside class="col-md-4 gal-left" id="sidebar">
+    <!-- 🔥 仅文章详情页（layout=post）显示目录，隐藏其他模块 -->
+    
+    <!-- 🔥 所有其他页面（主页/归档/标签/关于页）：显示完整侧边栏 -->
     <!-- 此为sidebar的搜索框, 非搜索结果页面 -->
 <aside id="sidebar-search">
     <div class="search hidden-xs" data-aos="fade-up" data-aos-duration="2000">
@@ -414,7 +525,7 @@
         <div class="author-panel text-center">
             <img src="/HardwareSecurityBlog.github.io/imgs/avatar.jpg" width="140" height="140"
                  alt="个人头像" class="author-image">
-            <p class="author-description"><p>聚焦于物理硬件安全的菜鸟blog</p>
+            <p class="author-description"><p>尝试物理硬件安全的菜鸟blog</p>
 </p>
         </div>
     </div>
@@ -465,11 +576,11 @@
     </div>
 </aside>
     
+
     
     <aside id="gal-sets">
         <div class="panel panel-gal hidden-xs" data-aos="fade-up" data-aos-duration="2000">
             <ul class="nav nav-pills pills-gal">
-
                 
                 <li>
                     <a href="/HardwareSecurityBlog.github.io/search/index.html#sidebar-tags" data-toggle="tab" id="tags-tab">热门标签</a>
@@ -490,7 +601,9 @@
                 
                 <div class="cloud-tags tab-pane nav bs-sidenav fade" id="sidebar-tags">
     
-    <a href="/HardwareSecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" style="font-size: 17.17781618008855px;" class="tag-cloud-link">CVE漏洞复现</a>
+    <a href="/HardwareSecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" style="font-size: 15.845690397120732px;" class="tag-cloud-link">CVE漏洞复现</a>
+    
+    <a href="/HardwareSecurityBlog.github.io/tags/%E5%AE%8C%E6%95%B4%E6%94%BB%E5%87%BB%E9%93%BE/" style="font-size: 18.19227407221086px;" class="tag-cloud-link">完整攻击链</a>
     
 </div>
                 
@@ -515,6 +628,7 @@
             </div>
         </div>
     </aside>
+    
     
 </aside>
             </div>
