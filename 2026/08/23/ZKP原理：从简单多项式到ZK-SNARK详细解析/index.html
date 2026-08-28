@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="author" content="Dorange">
+    
+    <meta name="description" content="work all day, and then I wake up...">
+    
+    
+    
+    
+    
+    
+    <title>ZKP 原理：从简单多项式到 ZK-SNARK 详细解析 | Fiex Reed</title>
+    <link href="https://lr2006-robot.github.io/SecurityBlog.github.io" rel="prefetch" />
+
+    
+<link rel="stylesheet" href="/SecurityBlog.github.io/css/bootstrap.min.css">
+<link rel="stylesheet" href="/SecurityBlog.github.io/css/aos.css">
+<link rel="stylesheet" href="/SecurityBlog.github.io/css/style.css">
+
+    
+<script src="/SecurityBlog.github.io/js/jquery.min.js"></script>
+
+    
+<script src="/SecurityBlog.github.io/js/bootstrap.min.js"></script>
+
+    
+<script src="/SecurityBlog.github.io/js/aos.js"></script>
+
+    
+<script src="/SecurityBlog.github.io/js/highslide/highslide-full.min.js"></script>
+
+    
+<link rel="stylesheet" href="/SecurityBlog.github.io/js/highslide/highslide.css">
+
+    <style type="text/css">
+        @media (max-width: 768px) {
+            body {
+                background-color: #f0f0f0;
+                background: url('/imgs/xsbg.gif');
+                background-attachment: fixed;
+            }
+        }
+    </style>
+    
+    <!--<script type="text/javascript">
+      if (document.images) {
+        var avatar = new Image();
+        avatar.src = '/SecurityBlog.github.io/imgs/avatar.jpg'
+        var previews = 'preview1.jpg,preview2.jpg,preview3.jpg,preview4.jpg'.split(',')
+        var previewsPreLoad = []
+        for(var i = 0; i < length; i++) {
+          previewsPreLoad.push(new Image())
+          previewsPreLoad[previewsPreLoad.length - 1].src = '/SecurityBlog.github.io/imgs/preview' + previews[i]
+        }
+      }
+    </script>-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="/SecurityBlog.github.io/favicon.ico">
+    <link rel="shortcut icon" href="/SecurityBlog.github.io/favicon.ico" type="image/x-icon">
+    <style>
+/* 文章主容器 */
+#article .article-body,
+#article-list .article-body {
+    background-color: rgba(230, 238, 232, 0.65) !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3) !important;
+}
+
+/* 侧边栏/卡片也一起加深，不然还是淡 */
+.panel,
+.panel2,
+.panel-gal,
+.list-group-item,
+.breadcrumb,
+.breadcrumb-gal {
+    background-color: rgba(230, 238, 232, 0.65) !important;
+    opacity: 1 !important;
+}
+
+/* 文章内容区单独加白背景，文字更清晰 */
+.content-article {
+    background-color: rgba(255, 255, 255, 0.65) !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+}
+
+/* 加深文字颜色，对比度拉满 */
+.content-article p,
+.content-article h1,
+.content-article h2,
+.content-article h3,
+.content-article li {
+    color: #1a1a1a !important;
+    font-weight: 500 !important;
+}
+
+/* 目录基础样式 */
+#toc-panel {
+    width: 100%;
+    background-color: rgba(230, 238, 232, 0.65) !important;
+    box-shadow: 0 0 8px #000 !important;
+    margin-bottom: 30px !important;
+    z-index: 999 !important;
+}
+#toc-panel.fixed {
+    position: fixed !important;
+    top: 80px !important;
+    width: 350px !important;
+}
+#toc-panel .panel-heading {
+    color: #fff !important;
+    background-color: rgba(10,10,0,.7) !important;
+    border-color: #000 !important;
+}
+#toc-list {
+    max-height: calc(100vh - 180px) !important;
+    overflow-y: auto !important;
+}
+#toc-list li {
+    background-color: transparent !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    transition: all 0.3s ease !important;
+}
+#toc-list li a {
+    color: #3d4450 !important;
+    text-decoration: none !important;
+    font-size: 13px !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+#toc-list li.toc-level-3 {
+    padding-left: 30px !important;
+}
+#toc-list li.active {
+    background-color: rgba(107, 105, 214, 0.2) !important;
+}
+#toc-list li.active a {
+    color: #6b69d6 !important;
+    font-weight: bold !important;
+}
+
+/* 修复侧边栏宽度 */
+#sidebar {
+    position: relative !important;
+}
+    </style>
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+<!-- 🔥 目录吸顶JS脚本（和你参考网站完全一致） -->
+<script>
+$(window).scroll(function() {
+    var toc = $("#toc-panel");
+    var sidebar = $("#sidebar");
+    var scrollTop = $(window).scrollTop();
+    var offsetTop = sidebar.offset().top;
+
+    if (scrollTop > offsetTop - 80) {
+        toc.addClass("fixed");
+    } else {
+        toc.removeClass("fixed");
+    }
+});
+</script>
+<body>
+    <!-- 背景轮播图功能 -->
+    <section class="hidden-xs">
+    <ul class="cb-slideshow">
+        <li><span>天若</span></li>
+        <li><span>有情</span></li>
+        <li><span>天亦老</span></li>
+        <li><span>我为</span></li>
+        <li><span>长者</span></li>
+        <li><span>续一秒</span></li>
+    </ul>
+</section>
+    <!-- 欧尼酱功能, 谁用谁知道 -->
+    
+    <header class="navbar navbar-inverse" id="gal-header">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    data-toggle="collapse" data-target=".bs-navbar-collapse"
+                    aria-expanded="false">
+                <span class="fa fa-lg fa-reorder"></span>
+            </button>
+            <a href="https://lr2006-robot.github.io/SecurityBlog.github.io">
+                
+                <!-- 这里background使用imgs/${logo_image}(路径文件名) -->
+                <style>
+                    #gal-header .navbar-brand {
+                        width: 200px;
+                        height: 50px;
+                        display: block;
+                        background: url('/SecurityBlog.github.io/imgs/logo.png') no-repeat;
+                    }
+                </style>
+                    
+                <div class="navbar-brand"></div>
+                
+            </a>
+        </div>
+        <div class="collapse navbar-collapse bs-navbar-collapse">
+            <ul class="nav navbar-nav" id="menu-gal">
+                
+                
+                <li class="">
+                    <a href="/SecurityBlog.github.io/">
+                        <i class="fa fa-home"></i>首页
+                    </a>
+                </li>
+                
+                
+                
+                <li class="">
+                    <a href="/SecurityBlog.github.io/archives">
+                        <i class="fa fa-archive"></i>归档
+                    </a>
+                </li>
+                
+                
+                
+                
+                <li class="dropdown">
+                    <!-- TODO 添加hover dropdown效果 -->
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
+                        <i class="fa fa-list"></i>分类
+                    </a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/categories/Nday%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">Nday漏洞复现</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/">密码学数学原理</a>
+                        </li>
+                        
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                
+                
+                <li class="dropdown">
+                    <!-- TODO 添加hover dropdown效果 -->
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+                       aria-haspopup="true" aria-expanded="false" data-hover="dropdown">
+                        <i class="fa fa-tags"></i>标签
+                    </a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE漏洞复现</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/%E5%AE%8C%E6%95%B4%E6%94%BB%E5%87%BB%E9%93%BE/">完整攻击链</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>
+                        </li>
+                        
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags">...</a>
+                        </li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                
+                <li class="">
+                    <a href="/SecurityBlog.github.io/about">
+                        <i class="fa fa-user"></i>关于我
+                    </a>
+                </li>
+                
+                
+            </ul>
+        </div>
+    </div>
+</header>
+    <div id="gal-body">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 gal-right" id="mainstay">
+                    
+<article class="article well article-body" id="article">
+    <div class="breadcrumb">
+        <i class="fa fa-home"></i>
+        <a href="https://lr2006-robot.github.io/SecurityBlog.github.io">Fiex Reed</a>
+        >
+        <span>ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</span>
+    </div>
+    <!-- 大型设备详细文章 -->
+    <div class="hidden-xs">
+        <div class="title-article">
+            <h1>
+                <a href="/SecurityBlog.github.io/2026/08/23/ZKP%E5%8E%9F%E7%90%86%EF%BC%9A%E4%BB%8E%E7%AE%80%E5%8D%95%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%88%B0ZK-SNARK%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90/">ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</a>
+            </h1>
+        </div>
+        <div class="tag-article">
+            
+            <span class="label label-gal">
+                <i class="fa fa-tags"></i>
+                
+                <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>, 
+                
+                <a href="/SecurityBlog.github.io/tags/ZKP/">ZKP</a>
+                
+            </span>
+            
+            <span class="label label-gal">
+                <i class="fa fa-calendar"></i> 2026-08-23
+            </span>
+            
+        </div>
+    </div>
+    <!-- 小型设备详细文章 -->
+    <div class="visible-xs">
+        <center>
+            <div class="title-article">
+                <h4>
+                    <a href="/SecurityBlog.github.io/2026/08/23/ZKP%E5%8E%9F%E7%90%86%EF%BC%9A%E4%BB%8E%E7%AE%80%E5%8D%95%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%88%B0ZK-SNARK%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90/">ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</a>
+                </h4>
+            </div>
+            <p>
+                <i class="fa fa-calendar"></i> 2026-08-23
+            </p>
+            <p>
+                
+                <i class="fa fa-tags"></i>
+                
+                <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>, 
+                
+                <a href="/SecurityBlog.github.io/tags/ZKP/">ZKP</a>
+                
+                
+                
+            </p>
+        </center>
+    </div>
+    <div class="content-article">
+        
+
+Zero-knowledge succinct non-interactive arguments of knowledge (zk-SNARK) 确实是一种非常精妙的方法，它可以在不揭示任何信息的前提下证明某个论断为真。简单来讲，zk-SNARK 是一种零知识证明（Zero-Knowledge Proof）协议，它允许一方（证明者prover）向另一方（验证者verifier）证明某个陈述是正确的，而无需透露任何关于该陈述的具体信息。
+
+零知识证明的诞生是数学与密码学的奇迹。本文将对这个广泛应用的技术进行详细解析，帮助读者理解其原理。我们将从简单的多项式证明开始，逐步深入到 zk-SNARK 的核心概念和实现细节。
+
+## 概念解读
+
+在任意的 **零知识证明** 系统中，都有一个 prover 在不泄漏任何额外信息的前提下要让 verifier 确信某些陈述（Statement）是正确的。例如 verifier 仅能知道 prover 的银行账户金额超过 X（也就是不披露实际金额）。协议应当满足下面三个性质：
+
+- 完整性 —— 只要 **陈述** 是正确的，prover 就可以让 verifier 确信
+- 可靠性 —— 如果 **陈述** 是错误的，那么作弊的 prover 就没有办法让 verifier 相信
+- 零知识 —— 协议的交互仅仅揭露 **陈述** 是否正确而不泄漏任何其它的信息
+
+zk-SNARK 这个术语由四个部分组成：
+
+- Zero-knowledge：零知识
+- Succinct：简洁
+- Non-interactive：非交互式
+- Arguments of Knowledge：知识论证
+
+zk-SNARK 这个术语本身是在非交互系统中引入的，它在配对的基础上，又遵循了匹诺曹协议（Pinocchio 协议）使其能够适用于通用的计算。
+
+## 多项式：证明的媒介与因式分解
+
+我们给一个简单的多项式 $f(x) = x^3 - 6x^2 + 11x - 6$。多项式有一个非常好的特性，就是如果我们有两个阶为 $d$ 的不相等多项式，他们相交的点数不会超过 $d$。稍微改动一下这个多项式，得到 $g(x) = x^3 - 6x^2 + 10x - 5$。
+
+![函数曲线对比](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZprVqiYphcoNl9qBk9tzfby7Hz8wUgwACGSwAAgK8SFRCKjrpmwMTcj0E.png)
+
+这只是一点微小的改动但是产生了很大的变化。任意一个阶数为 $d$ 的多项式组成的等式，最后都会被化简为另一个阶数至多为 $d$ 的多项式。也就是说，如果我们有两个阶数为 $d$ 的不相等多项式，他们相交的点数不会超过 $d$，所以至多有 $d$ 个共同点。
+
+如果我们将多项式在任意点的计算结果都看作是一个身份的表示，那么由我们上面的推论可以知道，在三阶多项式中最多只有三个值可以让这些多项式相等，其他值都是不相等的。
+
+这是为什么如果一个 prover 声称他知道一个 verifier 也知道的多项式时，他们可以按照一个非常简单的协议来验证：
+
+- verifier 选择一个随机值 $x$ 并在本地计算多项式结果
+- verifier 将 $x$ 值给到 prover，并让他计算相关的多项式结果
+- prover 代入 $x$ 到多项式计算并将结果给到 verifier
+- verifier 检查本地的计算结果和 prover 的计算结果是否相等，如果相等那就说明 prover 的陈述具有较高的可信度
+
+例如，我们把 $x$ 的范围设定在 $1$ ~ $10^100$，那么就有 $d$ 个值可以让 prover 骗过 verifier。也就是说，prover 骗过 verifier 的概率为 $\frac{d}{10^{100}}$。这个概率是非常小的，所以我们可以认为 prover 的陈述是可信的。
+
+但是到目前为止，我们的协议还只是一个很弱的证明，因为协议中并没有采取任何措施去保证参与方必须按照协议的规则生成证明，所以参与方只能互相信任。例如，prover 并不需要知道多项式，也可能通过其它方式得到正确的答案。而且，如果 verifier 要验证的多项式的解的取值范围不够大，比如 10，那个就可以去猜一个数字，猜对答案的概率是不可忽略不计的。因而我们必须要解决协议中的这个缺陷，在解决问题之前首先来想一下，知道多项式意味着什么呢？
+
+一个 $n$ 阶多项式可以用这样的形式来表示：$f(x) = c_n x^n + c_{n-1} x^{n-1} + ... + c_1 x + c_0$
+
+如果一个人说他知道一个多项式，那么这就意味这他知道这个多项式的所有系数 $c_n, c_{n-1}, ..., c_1, c_0$。
+
+如果一个人声称他知道一个包含 $x=1$ 和 $x=2$ 两个解的多项式，满足这个条件的多项式有很多，例如 $f(x) = (x-1)(x-2)$，$f(x) = (x-1)(x-2)(x-3)$，$f(x) = (x-1)(x-2)(x-3)(x-4)$ 等等。这个问题很有意思，我们来探讨一下这个答案的结构。
+
+代数的基本定理表明任意一个多项式只要它有解，就可以分解成线性多项式，也就是说，我们可以吧任意有效的多项式看成是其因式的乘积：$(x-a_0)(x-a_1)(x-a_2)...(x-a_n) = 0$
+
+我们回到上面的问题，如果一个人声称他知道一个包含 $x=1$ 和 $x=2$ 两个解的多项式，那么这个多项式可以被分解为：$(x-1)(x-2) \cdot ...$
+
+就是说 $(x-1)$ 和 $(x-2)$ 是这个多项式的一个因式。如果 prover 想要在不揭示多项式的前提下证明他的多项式确实有这两个根，那么他就需要去证明他的多项式 $p(x)$ 是目标多项式 $t(x) = (x-1)(x-2)$ 的倍数，也就是存在一个多项式 $h(x)$ 使得：$p(x) = t(x) \cdot h(x)$
+
+換句话说，存在一些多项式 $h(x)$ 能够使得与 $t(x)$ 相乘得到 $p(x)$。由此得出，$p(x)$ 包含 $t(x)$，所以 $p(x)$ 的根中包含了 $t(x)$ 的根，这也就是我们要证明的东西。
+
+自然，我们计算出 $h(x)$ 的方式就是直接相除：$h(x) = \frac{p(x)}{t(x)}$。
+
+如果一个 prover 不能找到 $h(x)$，那么就说明他的多项式 $p(x)$ 并不包含 $t(x)$，那么多项式相除就会有余数。
+
+利用多项式一致性检查协议我们就可以比较多项式 $p(x)$ 和 $t(x) \cdot h(x)$：
+
+- verifier 挑选一个随机值 $r$, 计算 $t = t(r)$ (即，求值) ，然后将 r 发送给 prover
+- prover 计算 $h(x) = \frac{p(x)}{t(x)}$ ，并对 $p(r)$ 和 $h(r)$ 进行求值，将计算结果 $p, h$ 提供给 verifier
+- verifier 验证 $p = t \cdot h$，如果多项式相等，就意味着 $t(x)$ 是 $p(x)$ 的因式
+
+实践一下，用下面的例子来执行这个协议：
+
+- verifier 选一个随机数 $23$，并计算 $t = t(23) = (23 – 1)(23 – 2) = 462$，然后将 $23$ 发给 prover
+- prover 计算 $h(x) = \frac{p(x)}{t(x)}$ ，并对 $p(r)$ 和 $h(r)$ 进行求值，将计算结果 $p, h$ 提供给 verifier
+- verifier 验证 $p = t \cdot h$，如果多项式相等，就意味着 $t(x)$ 是 $p(x)$ 的因式
+
+相反，如果 prover 使用一个不同的 $p'(x)$ ，它并不包含必要的因式，例如 $p'(x) = 2x^3 – 3x^2 + 2x$，那么会计算出结果 $2x + 3$ 和余数 $7x - 6$，则得到 $p(x) = t(x) \cdot (2x + 3) + (7x - 6)$。这就意味着 verifier 为了计算出结果就不得不用余数除以 $t(x)$，$h(x) = 2x + 3 + \frac{7x - 6}{t(x)}$。
+
+不过由于 $x$ 是 verifier 随机选择的，就有极低的概率余数 $7x – 6$ 最终可以被 $t(x)$ 整除。如果后面 verifier 要另外再检查 $p$ 和 $h$ 必须是整数的话，这个证明才会被拒绝。不过要这么校验就同时要求多项式系数也是整数，这对协议产生了极大的限制。
+
+现在我们就可以在不知道多项式的前提下根据特定的性质来验证多项式了，这就已经给了我们一些零知识和简明性的特性。但是，这个结构中还存在好多问题：
+
+- prover 可能并不知道他所声称的 $p(x)$，他可以先算一下 $t = t(r)$，然后选择一个随机值 $h$，由此计算出 $p = t⋅h$。因为等式是成立的，所以也能通过 verifier 的校验
+- 因为 prover 知道随机点 $x = r$ ，他可以构造出一个任意的多项式，这个任意多项式与 $t(r) ⋅ h(r)$ 在 $r$ 处有共同点
+- 在前面的 **陈述** 中，prover 声称他知道一个特定阶数的多项式，但现在的协议对阶数并没有明确的要求。因而 prover 完全可以拿一个满足因式校验的更高阶数的多项式来欺骗 verifier
+
+接下来我们要来解决这些问题，这就要引入一些新的知识了。
+
+## 模糊计算：同态加密与加密多项式
+
+前两个问题是由于暴露了原始值而导致的，也就是 prover 知道了 $r$ 和 $t(r)$。但如果 verifier 给出的这个值像放在黑盒里一样不可见的话就完美了，也就是一个人即使不破坏协议，也依然能在这些模糊的值上面完成计算。
+
+这也就是要设计同态加密的原因。它允许加密一个值并在密文上进行算术运算。获取加密的同态性质的方法有多种，我们来介绍一个简单的方法。
+
+相信大家都有一定的数学基础，看到前面的需要，聪明的你一定能想到离散对数问题以及离散椭圆曲线问题。我们就以简单的离散对数问题为例来说明同态加密的原理。当然，在实际的 zk-SNARK 中，使用的是更复杂的加密方法，一般也是用椭圆曲线。
+
+这里明确说明一下加密函数 $E(x) = g^x \mod n$，其中 $x$ 就是我们要加密的值。依据算法我们可以知道密文相乘等于明文相加，这一点在椭圆曲线上面也同样成立。也就是说：$E(x_1) \cdot E(x_2) = g^{x_1} \cdot g^{x_2} = g^{x_1 + x_2} = E(x_1 + x_2)$
+
+这个同态加密模式有一个限制，我们可以把一个加密的值和一个未加密的值相乘，但我们不能将两个加密的值相乘（或者相除），也就是说我们不能对加密值取幂。虽然这些性质第一感觉看起来很不友好，但是这却构成了 zk-SNARK 的基础。
+
+配合这些工具，我们现在就可以在加密的随机数 $x$ 上做运算并相应地修改零知识协议了。我们来看一下如何计算多项式 $p(x) = x³ – 3x² + 2x$。我们前面明确了，知道一个多项式就是知道它的系数，也就是这个例子中知道：$1$，$-3$，$2$。因为同态加密并不允许再对加密值求幂，所以我们必须要给出 $x$ 的 $1$ 到 $3$ 次幂取加密值：$E(x)$，$E(x^2)$，$E(x^3)$，那么我们要计算的加密多项式就是：
+$$E(x^3)^1 \cdot E(x^2)^{-3} \cdot E(x)^2 = (g^{x^3})^1 \cdot (g^{x^2})^{-3} \cdot (g^x)^2 = g^{x^3 - 3x^2 + 2x}$$
+
+所以通过这些运算，我们就获得了多项式在一些未知数 $x$ 处的加密计算结果。这确实是一个很强大的机制，因为同态的性质，同一个多项式的加密运算在加密空间中始终是相同的。我们现在就可以更新前面版本的协议了，比如对于阶数为 $d$ 的多项式：
+
+- verifier
+  - 取一个随机数 $s$ 也就是秘密值
+  - 指数 $i$ 取 $1$ 到 $d$，计算对 $s$ 的加密值 $E(s^i) = g^{s^i}$，并将这些加密值发送给 prover
+  - 带入 $s$ 计算未加密的目标多项式 $t(s)$
+- prover
+  - 计算多项式 $h(x) = \frac{p(x)}{t(x)}$
+  - 使用加密值 $E(s^i)$ 和多项式系数 $c_i$ 计算加密的多项式 $E(p(s)) = (g^{s^d})^{c_d} \cdot (g^{s^{d-1}})^{c_{d-1}} \cdots (g^s)^{c_1} \cdot g^{c_0}$ 和 $E(h(s))$
+  - 将加密的多项式 $E(p(s))$ 和 $E(h(s))$ 发送给 verifier
+- verifier
+  - 验证 $E(p(s)) = E(t(s)) \cdot E(h(s))$，如果等式成立，就说明 prover 的多项式确实包含了目标多项式的因式
+
+注意：因为证明者并不知道跟 $s$ 相关的任何信息，这就使得他很难提出不合法但是能够匹配验证的计算结果。
+
+利用强同态加密这个工具，构造了一个相对较强的零知识证明协议。但是这里还是存在一些问题，无法验证 prover 是否是真的使用了 verifier 提供的值来构造证明的。
+
+我们已经限制了 prover 对 $s$ 幂的加密值的选择, 但是这个限制并不是强制的，也就是说，prover 可以使用任何可能的方法找到满足下面等式的值 $z_p$ 和 $z_h$：$Z_p = (Z_h)^{t(s)}$
+
+再用这两个值来代替 $g^p$ 和 $g^h$ 将它交给 verifier。所以 verifier 需要能够证明 prover 给出的值就是用 $s$ 幂的加密值而不是其它值计算出来的。
+
+## 零知识证明：限制多项式与交互式证明
+
+解决这个问题的一种方法就是用另一个 **变换** 的加密值做同样的操作，充当类似算术中 **校验和** （Checksum） 的作用，以此确保结果是原始值的求幂值。
+
+这个是通过 Knowledge-of-Exponent Assumption (简称 KEA) 方法来实现的，更精准一点（注意 $a$ 和 $\alpha$(alpha)这两个字符的不同）说：
+
+Alice 有一个值 $a$，她想要 Bob 对其进行任意指数的求幂（这里 $a$ 是一个有限域群的生成器），唯一的要求是只能对 $a$ 进行求幂，为了保证这一点，她要：
+
+- 选择一个随机数 $\alpha$
+- 计算 $a' = a^\alpha \mod n$
+- 提供一个元组 $(a, a')$ 给 Bob，并要求 Bob 对这两个值执行任意的求幂运算，返回结果元组 $(b, b')$，这里的指数依然保持不变 $b^\alpha = b' \mod n$
+
+因为 Bob 无法从元组 $(a,a')$ 中获取 $\alpha$ 的值，暴力破解也难以实现，那就可以推断 Bob 生成有效的元组的唯一方法就是执行下面的操作：
+
+- 选择一个指数 $c$
+- 计算 $b = a^c \mod n$ 和 $b' = (a')^c \mod n$
+- 返回元组 $(b, b')$ 给 Alice
+
+有了回复的元组和 $\alpha$，Alice 就可以验证等式：$b^\alpha = b' \mod n$
+
+结论就是：
+
+- Bob 在元组的两个值的计算上都用了同一个指数（即  $c$）
+- Bob 只能用 Alice 原本的元组来保持 $\alpha$ 关系
+- Bob 知道指数 $c$，因为构造验证值 $(b,b′)$ 的唯一方式是用同一个指数
+- Alice 并不知道指数 $c$，这和 Bob 不知道 $\alpha$ 的原因一样
+- 虽然指数 $c$ 是被加密的，但它的可能取值范围并不足够大到保持其零知识的性质，这个问题我们将在后面解决。
+
+最后这个协议提供了一个证明给 Alice ，Bob 确实是用他知道的某个值对 $a$ 进行求幂的，而且他也不能做别的任何操作，例如：乘法，加法，因为这样就会破坏 $\alpha$-变换关系。
+
+这个结构限制 prover 只能用 verifier 提供的加密的 $s$ 进行计算，因而 prover 只能将系数 $c$ 赋给 verifier 提供的多项式。现在我们可以扩展这种单项式上的方法到多项式上，因为计算是先将每项的分配分开计算然后再  **同态地**  相加在一起的（这个方法是 Jens Groth 介绍的）。所以如果给定 prover 一个指数为 $s$ 的幂以及它们的变换的加密值，他就可以计算原始的和变换后的多项式，这里也必须要满足同样的校验。对于阶数为 $d$ 的多项式：
+
+- verifier 提供加密值 $E(s^i)$ 和 $E(s^i)^\alpha$，其中 $i$ 从 $0$ 到 $d$
+- prover：
+
+  - 计算给定的带有 $s$ 的幂的加密多项式 $g^p = g^{p(s)} = \prod_{i=0}^{d} (E(s^i))^{c_i}$
+  - 计算给定的带有 $s$ 的幂的转换的加密转换多项式：$g^{p'} = g^{p(s)^\alpha} = \prod_{i=0}^{d} (E(s^i)^\alpha)^{c_i}$
+  - 将计算结果 $g^{p}$ 和 $g^{p'}$ 发送给 verifier
+- verifier 验证：$g^{p'} = (g^p)^\alpha$
+
+现在我们就可以确保 prover 是用了 verifier 提供的多项式而不是其它值做计算的了，因为别的方法不能够保持 $\alpha$-变换。当然如果 verifier 想要确保在 prover 的多项式中排除了 $s$ 的某些次幂，如 $j$， 他就不能提供对应的密文及其变换：$g^{s^j}$ 和 $g^{s^j\alpha}$，这样就可以确保 prover 的多项式中不包含 $s^j$ 这个次幂。
+
+与前面的协议相比，我们现在已经有了一个比较健壮的协议。但是尽管已经做了加密，在零知识 性质上也还依然存在一个很明显的缺陷：即理论上多项式参数 $c_i$ 是一个很广的取值范围内的值，实际上这个范围可能很有限（比如前面例子中的 $6$），这就意味着 verifier 可以在有限范围的系数组合中进行暴力破解，最终计算出一个与 prover 的答案相等的结果。比如我们将每个系数的取值范围定为 $100$，多项式阶数为 $2$，那么大概会有 $100$ 万种不同的组合，这里可以认为暴力破解只需要少于 $100$ 万次的迭代。更重要的是，即使在只有一个系数，值为 $1$ 的例子中，安全协议也应该能够保证其安全。
+
+因为 verifier 能够从 prover 发送的数据汇总提取未知多项式 $p(x)$ 的知识，那么我们就来看一下这些提供的数据：$g^p$，$g^{p'}$，以及 $g^{h}$。
+
+他们参与到了下面的验证：
+
+- $g^p = (g^h)^{t(s)}$（多项式 $p(x)$ 有根 $t(x)$）
+- $g^{p'} = (g^p)^\alpha$（多项式 $p(x)$ 是用 verifier 提供的加密值计算的）
+
+问题是我们如何选择证明使得这个校验依然有效，同时又保证没有知识能被提取？前面章节给了我们一个答案：我们可以使用随机值 $\delta$ (delta) 来 **变换** 这些值, 如 $(g^p)^{\delta}$。现在，为了提取知识，就必须首先要知道一个不可知的值 $\delta$。并且，这种随机化在统计学上与随机值没有什么区别。
+
+具体来讲，就是 prover 选择一个随机值 $\delta$，并用它对证明中的值进行求幂 $(g^{p(x)})^{\delta}$，$(g^{p'(x)})^{\delta}$，$(g^{\alpha p(x)})^{\delta}$。
+
+然后提供验证内容给 verifier：$(g^p)^{\delta} = ((g^h)^{\delta})^{t(s)}$ 和 $((g^{p})^{\delta})^{\alpha} = ((g^{p'})^{\delta})$。
+
+注意零知识是如何轻而易举地融入到这个结构中去的，这通常也被称为 **无成本的** 零知识。借助这个 **无成本的** 技巧，就可以轻松实现零知识了。但是这里实现零知识的方法和实际中的 Pinocchio协议，还有 Groth16 方案略有不同。
+
+## 非交互式证明：配对与可信设置
+
+到现在为止，我们已经讲完了一个交互式的零知识方案。但为什么我们还需要有非交互式呢？因为交互式证明只对原始的 verifier 有效，其他任何人（其他的 verifier）都不能够信任这个证明，因为：
+
+- verifier 可以和 prover 串通，告诉他密码参数 $s$, $\alpha$，有了这些参数 prover 就可以伪造证明，就像前面提到的那样。
+- verifier 也可以使用同样的方法自己伪造证明。
+- verifier 必须保存 $\alpha$ 和 $t(s)$ 直到所有相关证明被验证完毕，这就带来了一个可能造成秘密参数泄漏的额外攻击面。
+
+因而 prover 就需要分别和每个 verifier 做交互来证明一个陈述（就是例子中指的多项式的知识）。
+
+尽管交互式证明也有它的用处，例如一个 prover 只想让一个特定的 verifier （称为目标 verifier）确信，就不能再重复利用同一个证明去向别人证明这个声明了，但是当一个 prover 想让众多的参与者同时或者永久地确信的话，这种方法就很低效了。 prover 需要保持一直在线并且对每一个 verifier 执行相同的计算。
+
+因而，我们就需要一个可以被重复使用，公开，可信，又不会被滥用的秘密参数。
+
+我们先来思考一下如何在构造出秘密值 $(t(s),\alpha)$ 构造之后保证它的安全性。我们可以对其进行加密，方式与 verifier 在发送加密值给 prover 之前对 $s$ 的幂使用的加密方式一致。但是前面提到，我们使用的同态加密并不支持两个秘密值相乘，这一点对 $t(s)$ 和 $h$ 的加密值相乘以及 $p$ 和 $\alpha$ 的加密值相乘的验证都很重要。这个问题适合用 **Pairing配对** 操作来解决。
+
+配对操作（双线性映射）是一个数学结构，表示为函数 $e(g,g)$，它给定一个数据集中的两个加密的输入（即 $g^a$ ,  $g^b$ ），可以将他们确定性地映射到另一组不同的输出数据集上的它们的乘积，即 $e(g^a, g^b) = e(g,g)^{ab}$ ：
+![配对映射](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZrkhqiqN_wik5Wg65h_sNVWIPIws9hAACgCkAAkreUVRydUsLgqz0tD0E.png)
+
+因为源数据集和输出数据集（通常被称为一个 group）是不同的，所以一个配对的结果不能用做其他配对计算的输入。我们可以将输出集（也称为 **目标集** ）视为 **不同的宇宙** 。因而我们不能用另一个加密值乘以结果，而且配对这个名称本身也表明了，我们一次只能将两个加密值相乘。
+
+在某种意义上，这个类似于一个哈希函数，他将所有可能的输入值映射到可能的输出值的集合中的一个元素上，通常情况下这个过程是不可逆的。最常使用的就是椭圆曲线的配对映射，大致可以理解成将两个曲线上的点映射到一个数。
+
+配对的核心性质可以表示成下面的等式：$e(g^a, g^b) = e(g^b,g^a) = e(g^{ab},g^1) = e(g^1, g^a)^b = e(g^1,g^1)^{ab}$
+
+严格来讲一个配对的结果是在目标集的一个不同生成元 g 下对原始值乘积的加密，即 $e(g^a,g^b) = g^{ab}$。因而它具备同态加密的性质，也就是说我们可以把乘法配对的加密乘积放到一起： $e(g^a,g^b) \cdot e(g^c,g^d) = g^{ab} \cdot g^{cd} = g^{ab+cd} = e(g^1,g^1)^{ab+cd}$。
+
+注意：配对操作是通过改变椭圆曲线来实现这些性质的，现在我们用的符号 $g^n$ 就代表曲线上一个由生成元自相加了 $n$ 次的点，而不是我们前面用到的乘法群生成元。
+
+有了配对，我们现在就准备去设置安全公开且可复用的参数了。假定一下我们让一个诚实的参与方来生成秘密值 $s$ 和 $\alpha$。只有 $\alpha$ 和所有必要的 $s$ 的幂及其对应的 $\alpha$-变换被加密了，那么原始数据就必须要被删除（ $i$ 为 $0$，$1$, $\cdots$, $d$ ）：$g^{\alpha}$，$g^{s^i}$，$g^{\alpha s^i}$。
+
+这些参数通常被称为 CRS（Common Reference String）。CRS 生成后，任何的 prover 和任何的 verifier 都可以使用它来构造非交互式的零知识证明协议。CRS 的优化版本将包含目标多项式的加密值 $g^{t(x)}$。把 CRS 分成两组：
+
+- proving key （也被称为 evaluation key）：pk $\longrightarrow (g^{s^i}, g^{\alpha s^i})$
+- verification key：vk $\longrightarrow (g^{\alpha}, g^{t(s)})$
+
+只要能够乘以加密值，verifier 就可以在协议的最后一步验证多项式了：
+
+- 有了 vk,verifier 就可以处理从 prover 那里得到的加密多项式的值  $g^p$，$g^h$，$g^{p'}$，并验证：
+  - 在加密空间中校验 $p = t \cdot h$：$e(g^p,g^1) = e(g^h,g^{t(s)})$
+  - 校验多项式的限制：$e(g^{p'},g^1) = e(g^p,g^\alpha)$
+
+## 多方安全设置
+
+尽管受信任设置很有效率，但众多 CRS 用户也必须要相信生成者确实删除了 $\alpha$ 和 $s$ ，这一点没有办法证明，所以这种方法依然是无效的。因而很有必要去最小化或者消除这种信任，否则一个不诚实的参与方就可以构造假证明而不被发现。
+
+一种解决办法就是由多个参与方使用前面小节中介绍的数学工具来生成一个组合式CRS，这样这些参与方就都不知道秘密了，我们将这个叫做多方安全设置。面是一个实现方案，我们假设有三个参与者 Alice，Bob 和 Carol ，对应为 A，B 和 C，其中 $i$ 为 $1$, $2$, $\cdots$, $d$：
+
+- Alice 选择随机数 $s_A$ 和 $\alpha_A$，计算出 $(g^{s_A^i}, g^{\alpha_A} g^{\alpha_A s_A^i})$，并公开这些值
+- Bob 选择随机数 $s_B$ 和 $\alpha_B$，计算出 $(g^{s_B^i}, g^{\alpha_B} g^{\alpha_B s_B^i})$，同时通过同态乘法结合 Alice 的 CRS：$((g^{s_A^i})^{s_B^i}, (g^{\alpha_A})^{\alpha_B} (g^{\alpha_A s_A^i})^{\alpha_B s_B^i}) = (g^{s_A^i s_B^i}, g^{\alpha_A \alpha_B} g^{\alpha_A \alpha_B s_A^i s_B^i})$，并公开这些值
+- Carol 选择随机数 $s_C$ 和 $\alpha_C$，计算出 $(g^{s_C^i}, g^{\alpha_C} g^{\alpha_C s_C^i})$，同时通过同态乘法结合 Alice 和 Bob 的 CRS：$((g^{s_A^i s_B^i})^{s_C^i}, (g^{\alpha_A \alpha_B})^{\alpha_C} (g^{\alpha_A \alpha_B s_A^i s_B^i})^{\alpha_C s_C^i}) = (g^{s_A^i s_B^i s_C^i}, g^{\alpha_A \alpha_B \alpha_C} g^{\alpha_A \alpha_B \alpha_C s_A^i s_B^i s_C^i})$，并公开这些值
+
+这个协议最后我们就获得一个混合的 $s^i$ 和 $\alpha$，$s^i = s_A^i s_B^i s_C^i$，$\alpha = \alpha_A \alpha_B \alpha_C$。只要有一个参与方是诚实的，那么就没有人知道最终的秘密值。
+
+有一个问题是如何验证参与者在生成 CRS 时用的随机数值是一致的，因为攻击者可以生成多个不同的随机数 $s_1$, $s_2$, $\cdots$ 和 $\alpha_1$, $\alpha_2$, $\cdots$，然后代入这些不同的随机数去执行 s 的不同次幂计算（或提供随机数作为一个 CRS 的扩充），从而使 CRS 无效或者不可用。
+
+庆幸的是，因为我们可以使用配对来乘以加密值，所以我们就可以从第一个参数开始逐一执行一致性校验，并且确保了每个参数都源于前一个。
+
+- 我们用 $s$ 的 $1$ 次幂作为标准来校验每一个其它次幂的值与之是否保持一致：$e(g^{s^i}, g^1) = e(g^{s^{i-1}}, g^ {s^1}) \bigg|_{i \in 2, \cdots, d}$
+- 现在再验证一下前面步骤中 $\alpha$-变换后的值是否正确：$e(g^{s^i},g^{\alpha}) = e(g^{\alpha s^i}, g^1) \bigg|_{i \in 0, \cdots, d}$
+
+同时，为了确保每一个参与者确实使用的是前一位参与者的 CRS 值生成新的 CRS 值，我们的协议额外再要求除了第一个以外的每一个参与者去加密然后公开他的参数。例如，Bob 同样公开了：$(g^{s_B^i}, g^{\alpha_B} g^{\alpha_B s_B^i}) \bigg|_{i \in 0, \cdots, d}$
+
+这就可以去验证 Bob 的 CRS 是乘以了 Alice 的参数后正常获得的：
+
+- $e(g^{s_{AB}^i}, g) = e(g^{s_A^i}, g^{s_B^i}) \bigg|_{i \in 0, \cdots, d}$
+- $e(g^{\alpha_{AB}}, g) = e(g^{\alpha_A}, g^{\alpha_B})$
+- $e(g^{\alpha_{AB} s_{AB}^i}, g) = e(g^{\alpha_A s_A^i}, g^{\alpha_B s_B^i}) \bigg|_{i \in 0, \cdots, d}$
+
+同样的，Carol 也必须证明她的 CRS 是乘以了 Alice-Bob 的 CRS 后正常获得的。
+
+这是一个健壮的 CRS 设置模式，它并不完全依赖于单个参与者。事实上，即使其它所有的参与者都串谋了，只要有一个参与者是诚实的，他能够删除并且永远不共享它的秘密参数，这个 CRS 就是有效的。所以在设置 CRS 的时候有越多不相关的参与者参与，伪造证明的可能性就越低。当有相互竞争的参与方参与的时候，就几乎不可能伪造证明了。这种模式能够包容其他一些怀疑这种 setup 可识别性的不受信方因为校验步骤确保了他们不会破坏（这里也包括很弱的 $\alpha$ 和 $s$ 的使用）最终的 CRS。
+
+## 多项式的 SNARK
+
+我们现在准备来合并这个逐步演化出来的 **zk-SNARKOP** 协议。为简洁起见，我们将使用大括号来表示由旁边的下标填充的一组元素，例如：${\{s^i\}}_{i \in [d]}$ 表示一组数 $s^1. s^2, \cdots, s^d$。我们已经明确目标多项式 $t(x)$ 和 prover 的多项式阶数 $d$：
+
+- Setup
+  - 挑选随机值 $s$ 和 $\alpha$
+  - 计算加密值 $g^{\alpha}$ 和 ${\{g^{s^i}\}}_{i \in [d]}$，${\{g^{\alpha s^i}\}}_{i \in [d]}$
+  - 生成 proving key：$({\{g^{s^i}\}}_{i \in [d]}$，${\{g^{\alpha s^i}\}}_{i \in [d]})$
+  - 生成 verification key：$(g^{\alpha}, g^{t(s)})$
+- Proving
+  - 分配系数 ${\{c_i\}}_{i \in [d]}$ 得 $p(x) = c_d x^d + c_{d-1} x^{d-1} + ... + c_1 x + c_0 x^0$
+  - 求多项式 $h(x) = p(x) / t(x)$
+  - 带入 ${\{g^{s^i}\}}_{i \in [d]}$ 计算多项式 $g^{p(s)}$ 和 $g^{h(s)}$
+  - 带入 ${\{g^{\alpha s^i}\}}_{i \in [d]}$ 计算多项式 $g^{p(s)^\alpha}$
+  - 选择随机值 $\delta$
+  - 构造随机化的证明 $\pi = (g^{\delta p(s)}, g^{\delta h(s)}, g^{\delta \alpha p(s)})$
+- Verification
+  - 映射证明 $\pi$ 为 $(g^p, g^h, g^{p'})$
+  - 验证多项式约束：$e(g^{p'}, g^1) = e(g^p, g^{\alpha})$
+  - 验证多项式系数：$e(g^p, g^1) = e(g^h, g^{t(s)})$
+
+简而言之，我们用 zk-SNARK 协议来解决多项式问题的知识，不过这是一个有局限的例子。因为大家可以说 prover 只要用另外一个有界的多项式去乘以 $t(x)$ 就可以很容易得构造出一个能够通过测试的多项式 $p(x)$ ，并且这种结构也是有效的。
+
+verifier 知道 prover 有一个有效的多项式，但是并不知道是哪一个。我们可以利用多项式的其他性质添加额外的证明，如：被多个多项式整除，是某个多项式的平方。虽然可能会有一个服务能够接受，存储和奖励所有经过证明的多项式，或者有一个需求，加密计算某种形式的未知多项式。然而若有通用方案就可以支撑无数的应用。
+
+结一下这篇文章中一步一步解决了下面的几个问题：
+
+- 保证 prover 的证明是按照规则正确构造的 $\Longrightarrow$ KEA
+- 保证知识的零知性 $\Longrightarrow$  **无成本的**  $\delta$ 变换
+- 可复用证明 $\Longrightarrow$ 非交互式
+- 非交互中如何设置安全公开且可复用的参数 $\Longrightarrow$ 参数加密，verifier 借助密码配对进行验证
+- 保证参数的生成者不泄密 $\Longrightarrow$ 多方的 Setup
+
+至此，一个用来证明多项式知识的完整的 zk-SNARK 协议就构造出来了，不过现在的协议在通用性上依然还有很多限制，后面的文章将继续介绍如何构造通用的 zk-SNARK。
+
+## 从程序到多项式的构造
+
+前面我们一直在讨论数学的问题，现在我们继续完善方案，让它能执行零知识程序，先来看一段伪代码程序：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function calc(w, a, b)</span><br><span class="line">    if w then</span><br><span class="line">        return a × b</span><br><span class="line">    else</span><br><span class="line">        return a + b</span><br><span class="line">    end if</span><br><span class="line">end function</span><br></pre></td></tr></table></figure>
+
+我们现在就需要找到一种方式来将程序转换成多项式。第一步是将程序转换成数学语言，这个相对简单一些，声明可以表达成下面的形式（假定 $w$ 是 $0$ 或 $1$）：$f(w,a,b) = w(a,b) + (1-w)(a+b)$。实际上，我们可以用这种方式表达任何形式的有限程序。
+
+我们先来仔细研究一下计算的本质。任何计算的内核都是由以下形式的基本运算组成的：
+$$左操作数\qquad运算操作符\qquad右操作数\qquad输出​$$
+
+两个操作数（即值）与一个运算符（即$+$,$–$,$\times$,$\div$）放在一起执行运算。例如操作数是 $2$ 和 $3$，运算符为乘，那么运算出来就是 $2 \times 3 = 6$。由于任何复杂的计算（或者程序）都是由一系列这样的基本运算组成的，所以首先我们需要知道在多项式中单个运算是怎么表示的。
+
+我们先来看一下如何将多项式和算术运算关联起来。例如有两个多项式 $f(x)$ 和 $g(x)$，尝试将他们相乘使得 $h(x) = f(x) \times g(x)$，在任意一个 $x = r$ 处 $h(x)$ 的计算结果都是 $f(r)$ 和 $g(r)$ 的乘积。
+
+下面看一下这几个多项式 $f(x) = 2x^2 - 9x + 10$ 和 $g(x) = -4x^2 + 15x - 9$。将两个多项式相乘得到 $h(x) = f(x) \times g(x) = -8x^4 + 66x^3 - 193x^2 + 231x - 90$。当 $x = 1$ 时，从图中可以看出相乘的结果：
+![多项式相乘](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZsntqivPR2mvVMj6aS_Z3fyR4HzRzwAACzSIAAkreWVQbwB6Kh-t4aT0E.png)
+
+同样的，我们讲两个多项式相加，一样可以用这种运算方式得到结果，作为一个有着基本数学能力的人一定可以理解。
+![多项式相加](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZsoVqivRC_xCTgDRnh50JO3tTGLNV2AAC1yIAAkreWVTsRo9Oxwhi0T0E.png)
+
+如果我们可以将操作数的值表示为多项式(我们也确实可以这么做)，那么利用算术属性，我们就能够得到操作数的计算结果了。
+
+回忆一下，我们曾经说过 **任何多项式在任意点的计算结果都可以看做是其唯一身份的表示。**
+
+反过来当我们知道某个多项式的时候，是不是也就意味着我们知道多项式上某个点的取值。这就是借助多项式来完成证明的依据。
+
+在一些选定的取值 $a$ 处的运算，记 $l(x)$， $r(x)$， $o(x)$ 分别表示（运算结果为）左操作数，（运算结果为）右操作数，运算结果。
+
+因而在计算过程中如果操作数和结果都可以用多项式的形式正确地表示出来，那么  $l(x) \ operator \ r(x) \ – \ o(x)$ 就能够成立。也就是说假如输出多项式 $o(x)$ 所代表的值是由运算符在操作数多项式 $l(x)$ 和 $r(x)$ 上进行乘法运算得出的正确结果，那么我们把输出多项式 $o(x)$ 放到等式的左边就能够得到： $l(x) \ operator \ r(x) \ – \ o(x) = 0$，这也就表明了当取值为 $a$ 时多项式 $l(x) \ operator \ r(x) \ – \ o(x)$ 计算结果为 $0$ 。那么只要多项式是有效的，运算多项式就一定有一个根 $a$。因此，根据前面的基础这个多项式里面一定包含因式 $(x-a)$，这就是我们要证明的目标多项式，即 $t(x) = x \ – \ a$。
+
+因而如果 prover 用 $l(x)$, $r(x)$, $o(x)$ 这些多项式来代替 $p(x)$ ，因为它们依然可以被 $t(x)$ 整除，所以 verifier 就可以认为它们是有效的。
+
+现在我们来修改一下最新协议使它支持单个乘法计算的证明。我们已经能够证明多项式 $p(x)$ 的知识了，只不过现在要计算的是三个多项式 $l(x)$, $r(x)$, $o(x)$ 的知识。我们可以定义 $p(x) = l(x) × r(x) – o(x)$，但这里存在两个争议点。首先，在我们的协议中证明阶段是不能做加密值乘法计算的（即， $l(s) \times r(s)$），因为配对只能用一次，这个要用在校验多项式的约束上。第二，这里给证明者留下了一个可以修改多项式结构但依然保留有效因式 $t(x)$ 的机会，例如可以令 $p(x) = l(x)$ 或者 $p(x) = l(x) – r(x)$ 甚至是 $p(x) = l(x) \times r(x) + o(x)$，只要这里的 $p(x)$ 还保留着根 $a$ 就可以了。这个修改本质上是让证明的内容变成了别的声明，所以这样是不行的。
+
+所以 prover 必须要分别提供多项式 $l(s)$, $r(s)$, $o(s)$ 值的证明，即协议必须修改要证明的多项式的知识。verifier 在加密空间中要验证的是 $l(s) \times r(s) – o(s) = t(s)h(s)$。verifier 可以使用密码学配对来执行乘法，但还有一个小问题就是做减法 ($– o(x)$) 是非常昂贵的计算（这需要去找到一个 $g^{o(x)}$ 的逆向转换），这里我们可以把 $o(x)$ 移到等式右边来： $l(x)r(x) = t(x)h(x) + o(x)$。
+
+在加密空间中，verifier 的验证就可以转换成：$e(g^{l(s)}, g^{r(s)}) = e(g^{t(s)}, g^{h(s)}) \cdot e(g^{o(s)}, g)$
+
+保持 setup 阶段不变，协议更新为：
+
+- 证明
+  - 分配对应的系数给 $l(x)$，$r(x)$，$o(x)$
+  - 计算多项式 $h(x) = \frac{l(x) \times r(x) - o(x)}{t(x)}$
+  - 使用 ${\{g^{s^i}\}}_{i \in [d]}$ 计算加密多项式 $g^{l(s)}$，$g^{r(s)}$，$g^{o(s)}$ 和 $g^{h(s)}$
+  - 使用 ${\{g^{\alpha s^i}\}}_{i \in [d]}$ 计算加密多项式 $g^{\alpha l(s)}$，$g^{\alpha r(s)}$，$g^{\alpha o(s)}$
+  - 设置证明 $\pi = (g^{l(s)}, g^{r(s)}, g^{o(s)},  g^{h(s)}, g^{\alpha l(s)}, g^{\alpha r(s)}, g^{\alpha o(s)})$
+- 验证
+  - 定义证明 $\pi$ 为 $(g^{l}, g^{r}, g^{o},  g^{h},g^{l'}, g^{r'}, g^{o'})$
+  - 检查多项式约束 $e(g^{l'}, g) = e(g^l, g^{\alpha})$，$e(g^{r'}, g) = e(g^r, g^{\alpha})$，$e(g^{o'}, g) = e(g^o, g^{\alpha})$
+  - 检查运算的有效性 $e(g^l, g^r) = e(g^{t(s)}, g^h) \cdot e(g^o, g)$
+
+现在我们已经能够证明单个算术运算了，但是要怎么扩展到多个运算上呢（这是我们的最终目标）。我们来尝试一下增加一个基本运算。想一想计算 $a \times b \times c$ 乘积的需求，在元素操作模型中，这代表着两个操作：
+
+- $a \times b = r_1$
+- $r_1 \times c = r_2$
+
+前面的讨论中我们通过对运算符多项式在任意取值 $x$ 处 ，例如$1$，计算一个对应值，来表示一个操作数或者结果。有了这个性质的多项式并不会约束我们在不同 $x$ 取值处用多项式来表示其他值。
+![多个独立运算](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZuStqi7IibmQ-2T_xrGt-97pjHFqgZwACGyUAAg-uYVRd-oZz-lj0-j0E.png)
+
+为了构造操作数和输出多项式，我们需要一种方法来用给定的一组点组构造一个能经过所有这些点的弯曲多项式，这叫插值。由集中不同的方法可以算出这个多项式：
+
+- 一组未知方程
+- 牛顿多项式
+- 内维尔算法
+- 拉格朗日多项式
+- 快速傅里叶变换
+
+我们以第一个方法为例。这个方法的思路是存在一个系数未知，阶数至多为 $n$ 的特定的多项式 $p(x)$ 能够经过给定的 $n+1$ 个点，对于每个点 ${(x_i, y_i)}, i \in [n+1]$ 来说，多项式在 $x_i$ 处的计算结果都等于 $y_i$，即对于所有的 $i$，$p(x_i) = y_i$。
+
+现在我们有了代表三个运算的操作数多项式，再进一步看一下怎么去校验每个计算的正确性。回到 verifier 寻找等式 $l(x) \cdot r(x) – o(x) = t(x)h(x)$ 的过程。在这个例子中，因为计算是在点 $x \in {1, 2, 3}$ 处被表示出来的，所以目标多项式在这些点处的计算结果必须为 $0$，换句话说，$t(x)$ 的根必须是 $1$，$2$ 和 $3$，它的基本形式就是：$t(x) = (x-1)(x-2)(x-3)$
+
+这里只需要一组多项式 $l(x)$，$r(x)$，$o(x)$ 就可以将所有计算的约束关系表示出来了，有几个计算也就对应着目标多项式 $t(x)$ 有几个根。
+
+当前的协议似乎存在一些缺陷，多项式只能证明 prover 拥有一组多项式 $l(x)$，$r(x)$，$o(x)$，在 $t(x)$ 的几个根的取值处 $l(x) \cdot r(x) = o(x)$，无法证明这组多项式符合我们要证明的数学表达式：
+
+1. 多个计算关系之间也是分开表示的，这些算式之间的关系也同样无法进行约束
+2. 由于 prover 生成的证明中只有计算结果，左操作数，右操作数，输出在计算中混用也不会被发现
+3. 由于左操作数，右操作数，输出是分开表示的，互相之间的关系无法进行约束
+
+如果证明中执行的程序在不同运算中使用了相同的变量作为操作数或输出，例如 $a \times b = r_1$ 和 $a \times c = r_2$。$a$ 代表两个运算中的左操作符多项式，如左图。然而，因为我们的协议中是允许 prover 为多项式设置任何系数的，所以他可以不受限制得为不同计算（即用一些 $x$ 表示的多项式）中的 $a$ 设置不同的值，如右图。
+
+![变量多项式](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZuYtqi7oGm4sclfn54RqF7P4_8zNvXwACjCUAAg-uYVT6lqR5xIHRDT0E.png)
+
+这个自由打破了一致性，有空间允许 prover 能去证明了一些并非 verifier 感兴趣的其它无关的程序执行。因而我们必须要确保每一个变量在所有运算中出现的地方都只有一个取值。
+
+在左操作符多项式 $l(x)$ 表示的所有左操作数中只包含一个变量 $a$。我们要找出是否有可以确保这个多项式在每一个运算中 $a$ 都相同的方法。prover 可以设置不同值是因为他可以任意控制 $x$ 的每个次幂的系数。因而如果这些系数是固定的，就可以解决问题了。
+
+那么由于多项式的算术性质，如果我们想要同时地改变多项式中所有的值我们就需要改变它的比例，如果我们用一个数字乘以多项式，那么在每一个可能的 $x$ 处的计算结果也要和相同的数字相乘，即等比例变换。
+
+因此，如果 verifier 需要在所有计算中强制 prover 设置相同的值，他就要限制 prover 只能修改比例而不是单个系数。
+
+所以怎么保持系数比例不变呢？对于这个问题我们可以先思考一下在左运算多项式 中我们提供的证明是什么。是 $l(x)$ 在一些秘密值 $s$ 处的加密值：$g^{l(x)}$ 即一个被加密了的数。我们已经从限制多项式这一节中知道了怎样通过一个 $\alpha$ -变换去限制 prover 只能使用 verifier 提供的 $s$ 的幂做计算，来使得单个运算能够满足同态乘法。和限制单个求幂值相似，verfier 可以一次限制完整的多项式。
+
+和限制单个求幂值相似，verfier 可以一次限制完整的多项式。而不只是提供单独的加密及其 $\alpha$ -移位。那么协议的过程就是：
+
+- Setup
+  - 使用对应的系数构造相应的操作符多项式 $l(x)$
+  - 选择随机数 $\alpha$ 和 $s$
+  - 使用加密的 $l(s)$ 和它的转换：$(g^{l(s)}, g^{\alpha l(s)})$ 来设置 proving key
+  - 设置 verification key：$(g^{\alpha})$
+- proving
+  - 对于操作数值 $v$ 乘以操作数多项式以及其变换 $(g^{l(s)})^v$ 和 $(g^{\alpha l(s)})^v$
+  - 提供操作多项式的乘法证明：$(g^{v l(s)}, g^{v \alpha l(s)})$
+- verification
+  - 解析证明为 $(g^l, g^{l'})$
+  - 验证比例 $e(g^{l'}, g) = e(g^l, g^{\alpha})$
+
+由于 verification key 包含了加密了的 $\alpha$，所以可以用多项式加（或者减）任意一个值 $v'$，即
+
+- $g^{v l(s)} \cdot g^{v'} = g^{v l(s) + v'}$
+- $g^{\alpha v l(s)} \cdot (g^{\alpha})^{v'} = g^{\alpha (v l(s) + v')}$
+- $e(^{\alpha (v l(s) + v')}, g) = e(g^{v l(s) + v'}, g^{\alpha})$
+
+简而言之，就是为了防止 prover 私自改系数，由于要证明的数学表达式是公开的，那么各个算式之间的约束关系也就是公开的，那么我们就可以把构造多项式的工作交给 setup 环节，这样 prover 只要填上对应的数值就可以了。上文这个方法就限制了在同一个操作数多项式上，不同的计算式中使用的同一个值的约束关系；同样若一个操作数多项式中用到了多个值，也可以将这些值全都加起来。
+
+因为只有当所有的左操作数使用同一个变量的时候我们才可以设置一个值。但是如果左操作数中再多一个值 $d$ 要怎么做呢：
+
+$$
+\begin{cases}
+a \times b = r_1 \\
+a \times c = r_2 \\
+d \times c = r_3
+\end{cases}
+$$
+
+假如我们还使用相同的方法，我们无法分别得为每一个变量设置值，并且让这些变量乘到一起去。也就是说这个受限的多项式只能支持一个变量的情况。我们可以把操作数多项式 $l(x)$ 分成操作数的变量多项式 $L(x) = a l_a (x) + d l_d (x)$
+
+变量 $a$ 和 $b$ 可以被赋值 并分别进行约束，然后加在一起就可以表示所有的左操作数变量了。因为我们将操作数的变量多项式 加在了一起，所以我们就要能够确保在每次计算中相加后的结果只表示所有操作符多项式 中的一个。
+
+有了这个算术性质我们就可以逐一构造操作数变量多项式了，这样如果变量 多项式在一个对应运算中被用做操作数，那么这一项就置为 $1$，否则就置为 $0$。$0$ 跟任何值相乘结果都是零，当把他们相加在一起的时候也就可以忽略掉这一项。
+![选择赋值函数](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZw-lqjCsBhmA5k7-3-ZZPDQ-is7uG5QAC2TAAAg-uYVSxw2PqxpldKj0E.png)
+
+仅当每一个操作数的变量多项式 是由 verifier 约束的，结果才有效，与左多项式相关的交互应该相应得更改为：
+
+- Setup
+  - 构造 $l_a (x)$，$l_d (x)$ 使得它能够在对应的计算处为 $1$，在其他地方为 $0$。
+  - 选择随机数 $s$，$\alpha$
+  - 计算加密未赋值得变量多项式 $g^{l_a (x)}$，$g^{l_d (x)}$
+  - 计算变换后得多项式 $g^{\alpha l_a (x)}$，$g^{\alpha l_d (x)}$
+  - 设置 proving key $(g^{l_a (x)}$, $g^{l_d (x)}, g^{\alpha l_a (x)}, g^{\alpha l_d (x)})$
+  - 设置 verification key $(g^{\alpha})$
+- Proving
+  - 为变量多项式赋值 $a$ 和 $d$：$(g^{l_a (s)})^a$， $(g^{l_d (s)})^d$
+  - 把所有赋值好的变量多项式加起来变成操作数多项式的形式：$g^{L(s)} = g^{a l_a (x)} \cdot g^{d l_d (x)} = g^{ a l_a (x) + d l_d (x)}$
+  - 提供左操作数得有效证明：$(g^{L(s)}, g^{\alpha L(s)})$
+- Verification
+  - 解析证明为 $(g^L, g^{L'})$
+  - 验证提供的多项式是否是最初提供的多个未赋值得变量多项式的和：$e(g^{L'}, g) = e(g^L, g^{\alpha})$
+
+注意：$L(s)$ 和 $\alpha L(s)$ 代表所有的变量多项式并且由于 $\alpha$ 只用在计算变量多项式中，所以 prover 没有别的选择只能在 setup 提供的原始加密值和变换后的加密值上赋予相同的系数做计算。
+
+结果，prover ：
+
+- 除了分配值外，不能再修改它们的系数进而来修改变量多项式 了，因为 prover 只拿到了这些多项式的加密值，也因为 $s$ 必要次幂的加密值不能与它们的 $\alpha$ 变换值一起使用
+- 不能通过另一个多项式相加去提供一个结果因为这样 $\alpha$ -比例关系将会被破坏掉
+- 不能通过与其他的一些多项式 $u(x)$ 相乘来修改操作数多项式，这样可能会使得修改后的值不成比例因为在预配对空间中无法进行加密乘法
+
+不过尽管 prover 被限制了多项式的使用，他还有拥有一些可允许范围内的自由度：
+
+- 当 prover 决定不加入一些变量多项式 $l_i (x)$ 来构造操作符多项式 $L(x)$ 时依然是可以接受的，因为这和为它分配值为 $0$ 是一样的：$g^{a l_a (x)} = g^{a l_a (x) + 0 l_d (x)}$
+- 如果 prover 添加同一个变量多项式多次也是可以接受的，因为这和一次分配多个值得和是一样的：$g^{a l_a (x)} \cdot g^{a l_a (x)} \cdot g^{a l_a (x)} = g^{3a l_a (x)}$
+
+这些方式在右操作数和输出操作数 $R(x)$ 和 $O(x)$ 上页同样适用。
+
+总结一下上面证明协议的大致思路为：
+
+1. 将要证明的程序转换为数学语言表达的形式（即加减乘除的计算）
+2. 用多项式在某处的取值来进行计算以此表示数学计算，进而进行证明
+3. 用多项式在多处的取值来进行计算表示多个数学运算，进而加以证明
+4. 对证明的“程序”在不同计算中使用的相同的变量进行约束
+
+当前的协议约束只解决了部分问题，还有诸多可以改进的地方，在下一节我们将对这些改进项展开讨论并给证明协议进行优化。
+
+## 可验证计算协议
+
+在上文的构造中，我们通过对 未赋值的变量多项式 的计算得到 $0$ 或者 $1$ ，以此表示在运算中是否要用到这个变量。自然地想，我们也可以使用其它系数值，包括负数值，因为我们可以插值 计算出经过任何必要的点（前提是没有两个计算使用了同一个 $x$）的多项式。
+
+现在我们的程序可以使用静态系数了，例如：
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function calc(w, a, b)</span><br><span class="line">    if w then</span><br><span class="line">        return 3a × b</span><br><span class="line">    esle</span><br><span class="line">        return 5a × 2b</span><br><span class="line">    end if</span><br><span class="line">end function</span><br></pre></td></tr></table></figure>
+
+在 setup 阶段这些系数类似于 $0$ 或者 $1$ 将被硬编码进去，之后就不能再修改了。现在我们将运算形式修改为：$c_a \cdot a \times c_b \cdot b = c_r \cdot r$
+
+或者我们使用更加正式的参数 $v_n \in \{v_1, v_2, \cdots, v_n\}$ 表示：$c_l \cdot v_l \times c_r \cdot v_r = c_o \cdot v_o$，其中下标 $l$，$r$ 和 $o$ 表示变量在运算中的位置。
+
+接下来我们要解决做加法的问题，很显然在多项式的表示中，每一个不同 $x$ 所要代表的操作数都是所有操作数变量多项式 的总和，其中只有一个被用到的变量是非零值而其它都为 $0$。
+
+我们可以利用这一个结构，加任何数量必要的变量 到每一个运算的操作符/输出中。例如在第一个运算中，我们可以首先做加法 $a+c$，然后就只需要用别的操作数与之相乘了，即 $(a+ c) \times b = r$，可以表示为下图：
+![加法多项式](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZzM9qjQ3PGXp2HSNqcd_IrBnTZ9FwnwACkyoAAg-uaVTvbmrBXBaI0D0E.png)
+
+因而也可以将这些变量中任意个，对它们先乘以任意的系数再一并加入到一起作为单个操作数中，以此来根据相应程序的需要构造一个操作数值。这个特性实际上就允许将运算结构改为：
+$$(c_{l,a} \cdot a + c_{l,b} \cdot b + \cdots) \times (c_{r,a} \cdot a + c_{r,b} \cdot b + \cdots) = (c_{o,a} \cdot a + c_{o,b} \cdot b + \cdots)$$
+
+或者更正式一些用变量 $v_i \in \{v_1, v_2, \cdots, v_n\}$ 和操作数变量系数 $c_{l,i} \in \{c_{l,1}, c_{l.2}, \cdots c_{l,n}\}$，$c_{r,i} \in \{c_{r,1}, c_{r.2}, \cdots c_{r,n}\}$，$c_{o,i} \in \{c_{o,1}, c_{o.2}, \cdots c_{o,n}\}$，整个结构就变为：$\sum_{i=1}^n c_{l,i} \cdot v_i \times \sum_{i=1}^n c_{r,i} \cdot v_i = \sum _{i=1}^n c_{o,i} \cdot v_i$
+
+简单来说，我们已经确定了可以在单个操作数的内容中将变量加起来，然后和另一个操作数相乘，即 $(3a + b) \times d = r$，但是如果我们只是想做加法，没有乘法，例如一个程序中需要做 $a + b$ 的计算，我们可以按照下面的方式来表示： $(a+b) \times 1 = r​$
+
+减法和加法几乎一直，唯一的不同就是负系数，$a-b$ 也就是 $(a+ -1 \cdot b) = r$。除法的话直接用乘法表示就好了；$b \times r = a$。
+
+运算的结构也称为 **约束** ，因为多项式结构代表的运算，并非是为了计算出结果，而是在 prover 已经知晓的变量赋值的情况下，检验这个运算的过程是否正确。换句话说，即约束 prover 必须提供一致的值，无论这些值是什么。
+
+有了一组通用的运算结构，我们就可以将我们原始的程序转换成一组运算，然后再转换成多项式的形式。我们先来想一下算法的数学形式（用变量 $v$ 表示运算结果）：
+$$w \times (a \times b) + (1-w) \times (a+b) =v$$
+
+这里有三个乘法，但是由于运算结构只支持一个乘法操作，所以这里至少要做三次运算。不过我们可以对其进行简化：
+$$w \times (a \times b) + a + b - w \times (a+b)=v \\
+w \times (a \times b - a - b) = v - a - b$$
+
+依据最基础的算式结构，我们写出两个约束，绿色为左操作数，蓝色为右操作数，红色为输出：
+1. $\textcolor{green}{1 \cdot a} \times \textcolor{blue}{1 \cdot b} = \textcolor{red}{1 \cdot m}$
+2. $\textcolor{green}{1 \cdot w} \times \textcolor{blue}{(1 \cdot m + -1 \cdot a + -1 \cdot b)} = \textcolor{red}{1 \cdot v + -1 \cdot a + -1 \cdot b}$
+
+注意我们要求 $w$ 是布尔取值（取值为 $0$ 或 $1$），所以要单独增加一条约束，否则 prover 就可以代入任何值去执行一个错误的运算了。我们可以把等式表示为 $w² – w = 0$，也就是 $(w – 0)(w – 1) = 0$ 这里 $0$ 和 $1$ 是唯一解。
+3. $\textcolor{green}{1 \cdot w} \times \textcolor{blue}{1 \cdot w} = \textcolor{red}{1 \cdot w}$
+
+我们有五个变量，全部写成一个向量 $s$ ：$s = \begin{pmatrix}  a && b && m && w && v \end{pmatrix}$。那么将这些约束进一步表示，首先要满足 $L_i \cdot s \times R_i \cdot s = O_i \cdot s$。可以看见，我们的结果因式多项式就是 $t(x) =(x-1)(x-2)(x-3)$，它必须确保三个运算都可以被正确计算。
+
+先看 $L_i$ 相关的约束，现在要实现 $L_1 \cdot s = a$，$L_2 \cdot s = w$ 和 $L_3 \cdot s = w$，可以直接求解出 $L_1 = \begin{pmatrix}  1 && 0 && 0 && 0 && 0 \end{pmatrix}$，$L_2 = \begin{pmatrix}  0 && 0 && 0 && 1 && 0 \end{pmatrix}$，$L_3 = \begin{pmatrix}  0 && 0 && 0 && 1 && 0 \end{pmatrix}$。
+
+将所有的 $L_i$ 拼接起来得到 $L = \begin{pmatrix}  1 && 0 && 0 && 0 && 0 \\ 0 && 0 && 0 && 1 && 0 \\ 0 && 0 && 0 && 1 && 0 \end{pmatrix}$。如果将 $L(x)$ 写成 $L(x) = a \cdot l_a (x) + b \cdot l_b (x) + m \cdot l_m (x) + w \cdot l_w (x) + v \cdot l_v (x)$ 的话，实际上将上面的矩阵按照 $s$ 的变量顺序看，第一列就是 $l_a (x)$ 在 $x \in \{1,2,3\}$ 的取值，其余的以此类推。
+
+那么现在根据这三个量，我们可以直接利用多项式插值法找到每个变量多项式，例如 $l_a (x) = \frac{1}{2} x^2 - \frac{5}{2} x + 3$。当然，不可避免地会出现大量的函数为 $0$，这是正常现象。现在，将所有的变量多项式都计算出来，如下图所视：
+![求变量多项式](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEZ1e9qjVltv3lg3AhqBBYwU1vPvpL6agACkjQAAg-uaVQp5ASATyWhNz0E.png)
+
+后续就可以进一步求解出 $L(x)$，$R(x)$，$O(x)$，那么我们需要证明 $L(x) \times R(x) - O(x) = t(x)h(x)$，那么先找出 $h(x) = \frac{L(x) \times R(x) - O(x)}{t(x)}$。
+
+我们基于前文中多项式知识协议做了很多重要的修改使它变得更通用，我们再来看一下它现在的定义。假定函数 $f(x)$ 是要证明的问题中的计算结果，其中约束的数量为 $d$ ，变量的数量 $n$ ，以及它们对应的系数为：$\{{c_{L,i,j},c_{R,i,j},c_{O,i,j}}\}_{i \in \{1, \cdots, d\}, j \in \{1, \cdots, n\}}$
+
+- Setup
+  - 给左操作数 $\{{l_j (x)}\}_{j \in \{1, \cdots, n\}}$ 构造变量多项式，然后对于所有 $i \in \{1, \cdots, d\}$ 的运算都算出对应的系数，即 $l_j (i) = c_{L,i,j}$，对右操作数和输出一样。
+  - 随机抽取 $s$， $\alpha$
+  - 计算 $t(x) = (x-1)(x-2)\cdots(x-d)$ 以及结果 $g^{t(s)}$
+  - 计算 proving key：$(\{g^{s^k}\}_{k \in [d]}, \{g^{l_j (s)},g^{r_j (s)},g^{o_j (s)},g^{\alpha l_j (s)},g^{\alpha r_j (s)},g^{\alpha o_j (s)}\}_{j \in \{1, \cdots, n\}})$
+  - 计算 verification key：$(g^{t(s)}, g^{\alpha})$
+- Proving
+  - 计算函数 $f(x)$ 以此计算相应的变量 $\{{v_j}\}_{j \in \{1, \cdots, n\}}$
+  - 计算 $h(x) = \frac{L(x) \times R(x) - O(x)}{t(x)}$，其中 $L(x) = \sum_{j=1}^n v_j l_j (x)$，$R(x)$， $Q(x)$ 类似。
+  - 给变量赋值并队操作数多项式求和：$\prod_{j=1}^{n}\left(g^{l_j(s)}\right)^{v_j}$，$\prod_{j=1}^{n}\left(g^{r_j(s)}\right)^{v_j}$，$\prod_{j=1}^{n}\left(g^{o_j(s)}\right)^{v_j}$
+  - 对变换的多项式赋值：$\prod_{j=1}^{n}\left(g^{\alpha l_j(s)}\right)^{v_j}$，$\prod_{j=1}^{n}\left(g^{\alpha r_j(s)}\right)^{v_j}$，$\prod_{j=1}^{n}\left(g^{\alpha o_j(s)}\right)^{v_j}$
+  - 使用 $s$ 的幂加密值 $\{g^{s^k}\}_{k \in [d]}$ 计算加密值 $g^{h(s)}$
+  - 生成证明 $\{g^{L(s)},g^{R(s)},g^{O(s)},g^{\alpha L(s)},g^{\alpha R(s)},g^{\alpha O(s)}\}$
+- Verification
+  - 解析证明为 $\{g^{L},g^{R},g^{O},g^{L'},g^{R'},g^{O'}\}$
+  - 检查可变多项式约束：$e(g^L, g^{\alpha}) = e(g^{L'}, g)$，$e(g^R, g^{\alpha}) = e(g^{R'}, g)$，$e(g^O, g^{\alpha}) = e(g^{O'}, g)$
+  - 验证计算有效性： $e(g^L, g^R) = e(g^t, g^h) \cdot e(g^O, g)$
+
+这里我们补充一些概念的名字，实际上从一个需要证明的多项式到所有的变量多项式的求出以及目标多项式的设置，这整一个过程叫做二次算术程序（Quadratic Arithmetic Program QAP）。同时
+前面讲到的满足 $a \cdot v \times b \cdot v = c \cdot v$ 的约束叫做 秩‑1 约束系统（Rank‑1 Constraint System R1CS 约束系统）
+
+现在我们的协议看似完善，可以进行常规的计算验证了，实际上这里依然还有两个安全问题需要考虑解决。
+
+第一个问题是 **操作数和输出的不可交换性** ，因为再变量多项式约束的检查中的所有操作数上，我们使用了同一个 $\alpha$ ，所以就没有办法阻止 prover 做下面的欺骗行为：
+
+- 使用其它的操作数中的可变多项式，即 $L'(s) = o_1 (s) + r_1(s) + \cdots $
+- 完全交换操作数多项式，也就是直接变成 $O(s) \times R(s) = L(s)$
+- 复用相同的操作多项式，即 $L(s) \times L(s) = O(s)$
+
+可交换性就是指 prover 可以修改计算过程，并有效证明一些其它无关的计算结果。防止这种行为的一个很显然的方式就是在不同的操作数上使用不同的 $\alpha$ ，具体协议就可以修改为：
+
+- Setup
+  $\cdots$
+  - 选择随机数 $\alpha_l$，$\alpha_r$，$\alpha_o$ 来代替 $\alpha$
+  - 计算 proving key：$(\{g^{s^k}\}_{k \in [d]}, \{g^{l_j (s)},g^{r_j (s)},g^{o_j (s)},g^{\alpha_l l_j (s)},g^{\alpha_r r_j (s)},g^{\alpha_o o_j (s)}\}_{j \in \{1, \cdots, n\}})$
+  - 计算 verification key：$(g^{t(s)}, g^{\alpha_l}, g^{\alpha_r}, g^{\alpha_o})$
+- Proving
+  $\cdots$
+  - 对变换的多项式赋值：$\prod_{j=1}^{n}\left(g^{\alpha_l l_j(s)}\right)^{v_j}$，$\prod_{j=1}^{n}\left(g^{\alpha_r r_j(s)}\right)^{v_j}$，$\prod_{j=1}^{n}\left(g^{\alpha_o o_j(s)}\right)^{v_j}$
+  - 设置证明：$\{g^{L(s)},g^{R(s)},g^{O(s)},g^{\alpha_l L(s)},g^{\alpha_r R(s)},g^{\alpha_o O(s)}\}$
+- Verification
+  $\cdots$
+  - 检查可变多项式约束：$e(g^L, g^{\alpha_l}) = e(g^{L'}, g)$，$e(g^R, g^{\alpha_r}) = e(g^{R'}, g)$，$e(g^O, g^{\alpha_o}) = e(g^{O'}, g)$
+
+这样就不能再一个操作数中使用其他的操作数的变量多项式了，因为 prover 没有办法去获知$\alpha_l$，$\alpha_r$，$\alpha_o$ 来满足 $\alpha_s$ 的变换关系。
+
+第二个问题是关于跨操作数的变量一致性问题。对于任意的变量 $v_i$，我们都必须将它的值分配到每个相应的操作数中的一个与之对应的变量多项式上面，也就是一定要一一对应： $(g^{l_i (s)})^{v_i}$，$(g^{r_i (s)})^{v_i}$，$(g^{o_i (s)})^{v_i}$.
+
+因为每一个操作数运算符的有效性是分开校验的，并不强制要求我们在对应的变量多项式中使用相同的变量值。这就意味着在左操作数中变量 $v_i$ 的值可以与右操作数或输出中的变量值 $v_i$ 不同。
+
+我们可以通过熟悉的限制多项式的方法（也就是限制变量多项式的方法）在操作数之间强制变量值相等。如果我们能够在所有的操作数之间创造一个作为变换的校验和的变量多项式，那么就可以限制 prover 使其只能够赋予相同的值。verifier 可以将这些每个变量的多项式加起来，即：$g^{l_i (s)+r_i (s)+o_i (s)}$。
+
+然后给他一个额外的随机数 $\beta$，得到 $g^{\beta(l_i (s)+r_i (s)+o_i (s))}$。将这些变换后的多项式给 prover，与变量多项式一起给它赋上变量值：$(g^{l_i (s)})^{v_{L,i}},(g^{r_i (s)})^{v_{R,i}},(g^{o_i (s)})^{v_{O,i}},(g^{\beta(l_i (s)+r_i (s)+o_i (s))})^{v_{\beta, i}}$。随后将 $g^{\beta}$ 加到 verification key 中。
+
+现在如果所有的 $v_i$ 值相同，也就是 $v_{L,i} = v_{R,i} = v_{O,i} = v_{\beta,i}$，其中 $i \in \{1, \cdots, n\}$。就有等式满足：$e(g^{v_{L,i} \cdot l_i (s)} \cdot g^{v_{R,i} \cdot r_i (s)} \cdot g^{v_{O,i} \cdot o_i (s)}, g^{\beta}) = e(g^{v_{\beta,i} \beta(l_i (s)+r_i (s)+o_i (s))}, g)$
+
+尽管这个一致性校验很有用，但还是存在一定的概率 $l(s)$， $r(s)$， $o(s)$ 中至少有两项要么计算值相同要么一个多项式可以被另一个整除等情况，这就允许 prover 去分解 $v_{L,i}， v_{R,i}， v_{O,i} ， v_{\beta,i}$ ​这些值的关系，使得即使有至少两个不相等的值也依然能够保持等式成立，从而使校验无效：
+$$(v_{L.i} \cdot l_i (s) + v_{R.i} \cdot r_i (s) + v_{O.i} \cdot o_i (s)) \cdot \beta = v_{\beta,i} \beta(l_i (s)+r_i (s)+o_i (s))$$
+
+因而这样一个一致性策略是无效的。缓解这种情况的一种方法是对每个操作数都使用不同的 $\beta$，确保操作数的变量多项式 中包含无法预测的值。以下就是修改后的协议：
+
+- Setup
+  $\cdots$
+  - 随机数 $\beta_l$，$\beta_r$，$\beta_o$
+  - 对变量一致性多项式进行计算，加密并添加到 proving key 中：$\{g^{\beta_l l_i (s) + \beta_r r_i (s) + \beta_o o_i (s)}\}_{i \in \{1, \cdots, n \}}$
+  - verification key 中添加： $(g^{\beta_l},g^{\beta_r},g^{\beta_o})$
+- Proving
+  $\cdots$
+  - 将变量值赋给变量一致性多项式：$g^{z_i (s)} = (g^{\beta_l l_i (s) + \beta_r r_i (s) + \beta_o o_i (s)})^{v_i} \qquad i \in \{1, \cdots, n \}$
+  - 增加分配的多项式到加密空间中：$g^{Z(s)} = \prod_{i=1}^n g^{z_i (s)} = g^{\beta_l L(s) + \beta_r R(s) + \beta_o O(s)}$
+  - 再在证明中加入： $g^{Z(s)}$
+- Verification
+  $\cdots$
+  - 校验提供的操作数多项式和校验和多项式之间的一致性：$e(g^L, g^{\beta_l}) \cdot e(g^R, g^{\beta_r}) \cdot(g^O, g^{\beta_o}) = e(g^Z, g)$。这也相当于 $e(g,g)^{\beta_l L(s) + \beta_r R(s) + \beta_o O(s)} = e(g,g)^Z$
+
+这个构造中同一个变量值就无法乱用了，因为不同的 $\beta_s$ 使得相同多项式无法兼容，而按时这里还存在一点缺陷，由于 $(g^{\beta_l},g^{\beta_r},g^{\beta_o})$ 是公开可见的，攻击者可以修改任意变量多项式的零索引系数（前面那些多项式的常数项），因为它并不依赖于 $s$，即 $g^{\beta_s s^0} = g^{\beta_l}$。
+
+## 变量非延展性和变量一致性多项式
+
+先看变量多项式的延展性，看个例子：$\textcolor{green}{a} \times \textcolor{blue}{1} = \textcolor{red}{b}$ 和 $\textcolor{green}{3a} \times \textcolor{blue}{1} = \textcolor{red}{c}$ 预期的结果是 $b = a$ 和 $c = 3a$ 进一步就是 $c = 3b$ 。这就是说左操作数的变量多项式的计算结果为 $l_a (1) = 1$ 和 $l_a (2) = 3$。先不管 $l_a (x)$ 的形式，prover 可以不按照上述的比例，直接用另一个修改了常数的多项式 $l_a '(x) = a l_a (x) + 1$ 来给 $a$ 赋值。这样运算就变成了 $l_a '(1) = a + 1$ 和 $l_a '(2) = 3a + 1$，这意味着 $a$ 的取值的实际意义在不同的运算中是不一样的。
+
+但是因为 prover 已经拿到了 $g^{\alpha_l}$ 和 $g^{\beta_l}$，所以他依然能够通过正确的操作符多项式和变量一致性的校验：
+
+- Proving
+  $\cdots$
+  - 使用分配不成比例的变量 $a$ 来建立左操作多项式：$L(x) = a \cdot l_a (x) + 1$
+  - 按照常规的方式构造右多项式和输出多项式
+  - 计算除数 $h(x) = \frac{L(x) \cdot R(x) - O(x)}{t(x)}$
+  - 计算加密值：$g^{L(s)} = (g^{l_a (s)})^a \cdot g^1$，并按照常规方式计算 $g^{R(s)}$ 和 $g^{O(s)}$
+  - 计算变换的加密值： $g^{\alpha L(s)} = (g^{\alpha l_a (s)})^a \cdot g^1$，并按照常规方式计算 $g^{\alpha R(s)}$ 和 $g^{\alpha O(s)}$
+  - 计算变量一致性多项式：$g^{Z(s)} = \prod_{i=1}^n g^{z_i (s)} = g^{\beta_l (L(s) +1) + \beta_r R(s) + \beta_o O(s)}$
+  - 设置证明：$\{g^{L(s)},g^{R(s)},g^{O(s)},g^{\alpha_l L(s)},g^{\alpha_r R(s)},g^{\alpha_o O(s)},g^{Z(s)}, g^{h(s)}\}$
+- Verification
+  - 变量多项式约束：
+  $$e(g^L, g^{\beta_l}) \cdot e(g^R, g^{\beta_r}) \cdot(g^O, g^{\beta_o}) = e(g^Z, g) \longrightarrow e(g,g)^{(a \cdot l_a + 1) \beta_l + R \beta_r + O \beta_o} = e(g,g)^{\beta_l (L +1) + \beta_r R + \beta_o O}$$
+  - 有效计算检查： $e(g^L, g^R) = e(g^t, g^h) \cdot e(g^O,g)$
+
+接下来看变量一致性多项式的延展性问题，$(g^{\beta_l},g^{\beta_r},g^{\beta_o})$ 的存在允许我们在不同操作数的相同变量上使用不同的值。如果我们有一个运算 $a \times a = b$。可以用多项式来表示：
+
+$$
+\begin{cases}
+l_a (x) = x, \quad r_a (x) = x, \quad o_a (x) = 0 \\
+l_b (x) = 0, \quad r_b (x) = 0, \quad o_b (x) = x
+\end{cases}
+$$
+
+尽管我们期待的输出是 $b = a^2$，但我们可以设置不同的 $a$ 值，例如设置左右操作数中的 $a$ 分别为 $2$ 和 $5$。
+
+- Proving
+  $\cdots$
+  - 用 $a = 2$ 设置左操作数多项式： $L(x) = 2l_a (x) + 10 l_b (x)$
+  - 用 $a = 5$ 设置右操作数多项式： $R(x) = 2r_a (x) + 3 + 10r_b (x)$
+  - 用 $b = 10$ 设置输出多项式： $O(x) = 2o_a (x) + 10o_b (x)$
+  - 计算加密值： $g^{L(s)}, g^{R(s)}, g^{O(s)}$
+  - 计算一致性多项式： $g^{Z(s)}$
+- Verification
+  $\cdots$
+  - 变量值的一致性检查应满足： $e(g^L, g^{\beta_l}) \cdot e(g^R, g^{\beta_r}) \cdot(g^O, g^{\beta_o}) = e(g^Z, g)$
+
+这种能力会危害到协议的可靠性，很显然加密的 $\beta_s$ 不应该对 prover 可见。所以解决延展性问题的一个方法就是，在 setup 阶段将 verification key 中加密的 $\beta_s$ 项于随机秘密值 $\gamma$（gamma）相乘使其与加密值 $Z(s)$ 不兼容：$g^{\beta_l \gamma}, g^{\beta_r \gamma}, g^{\beta_o \gamma}$
+
+因为这个变量 $\gamma$ 是随机的，prover 不知道它的值。所以这个修改就需要我们用 $Z(s)$ 乘以 $\gamma$ 来平衡协议中的变量一致性灯饰
+
+- Setup
+  $\cdots$
+  - 随机数 $\beta_l, \beta_r, \beta_o, \gamma$
+  $\cdots$
+  - 设置 verification key： $(\cdots, g^{\beta_l \gamma}, g^{\beta_r \gamma}, g^{\beta_o \gamma}, g^{\gamma})$
+- Proving $\cdots$
+- Verification
+  $\cdots$
+  - 变量值一致性检查应满足：$e(g^L, g^{\beta_l \gamma}) \cdot e(g^R, g^{\beta_r \gamma}) \cdot(g^O, g^{\beta_o \gamma}) = e(g^Z, g^{ \gamma})$
+
+这样的设置还有一个十分巧妙的地方就是排除了变量多项式为0阶得例子，否则就可能从 proving key 得变量一致性多项式中揭露加密的 $\beta$ 值。当操作数和输出任意两项为 $0$ 时，例如 $l_1 (s) = 1, r_1 (s) = 0, o_1 (s) = 0$时，结果就是：$g^{\beta_l l_1 (s) + \beta_r r_1 (s) + \beta_o o_1 (s)} = g^{\beta_l}$
+
+我们同样也可以通过修饰 $\alpha_s$ 项来解决变量多项式 的延展性问题。但是这就没有必要了，因为对于变量多项式 的任何修改，都需要被映射到变量的一致性多项式 中，而一致性多项式是无法修改的。
+
+现在变量值一致性 检查是有效的，但是这里在 verification key 中增加了 4 个昂贵的配对操作和 4 个新的项。Pinocchio 协议用了一个很聪明的方法优化，通过选择不同的生成元 $g$ ，从而对每个操作数实行“移位”：
+
+- Setup
+  $\cdots$
+  - 选择随机值 $\beta, \gamma, \rho_l, \rho_r$ 并设置 $\rho_o = \rho_l \cdot \rho_r$
+  - 设置生成元 $g_l = g^{\rho_l}, g_r = g^{\rho_r},g_o = g^{\rho_o}$
+  - 设置 proving key：$(\{g^{s^k}\}_{k \in [d]}, \{g_l^{l_i (s)},g_r^{r_i (s)},g_o^{o_i (s)},g_l^{\alpha_l l_i (s)},g_r^{\alpha_r r_i (s)},g_o^{\alpha_o o_i (s)},g_l^{\beta l_i (s)},g_r^{\beta l_r (s)},g_o^{\beta o_i (s)}\}_{i \in \{1, \cdots, n\}})$
+  - 设置 verification key：$(g_o^{t(s)}, g^{\alpha_l}, g^{\alpha_r}, g^{\alpha_o}, g^{\beta \gamma}, g^{\gamma})$
+- Proving
+  $\cdots$
+  - 分配变量值 $g^{Z(s)} = \prod_{i=1}^n (g_l ^{\beta l_i (s)} \cdot g_r ^{\beta r_i (s)} \cdot g_o ^{\beta o_i (s)})^{v_i}$
+- Verification
+  $\cdots$
+  - 变量多项式约束检查：$e(g_l ^{L'},g) = e(g_l ^L,g^{\alpha_l})$，对 $g_r^R$ 和 $g_o^O$ 做同样的检查
+  - 变量值约束检查：$e(g_l^L \cdot g_r^R \cdot g_o^O,g^{\beta \gamma}) = e(g^Z,g^{\gamma})$
+  - 有效运算检查：$e(g_l^L,g_r^R) = e(g_o^t,g^h) \cdot e(g_o^O,g) \longrightarrow e(g,g)^{\rho_l \rho_r LR} = e(g,g)^{\rho_l \rho_r O}$
+
+生成元的这种随机化进一步增加了安全性，使得可变多项式延展性无效。因为对于故意的修改，它必须要么是 $\rho_l$ ，$\rho_r$ 或者 $\rho_o$ 原始值的倍数要么就是不可直接用的加密值的倍数。这个优化使得 verification key 减少了两个项，并且去除了 verification 步骤中的两个配对运算。
+
+## Pinocchio 协议
+
+我们的分析主要集中在运算的概念上。但是，协议实际上不是去做计算，而是检验输出值是否是操作数正确运算得到的结果。所以我们称之为约束，即一个 verifier 约束 prover 去为预定义的 **程序** 提供有效值，而无论这个 **程序** 是什么。多个约束组成的系统被称为 **约束系统**（在我们的例子中这是一个一阶约束系统，或被称为 R1CS）。
+
+因而我们也可以使用约束来确保其它的关系。例如，如果我们想要确认变量 a 的值只能为 0 或 1（即二进制数），我们可以用一个简单的约束去做这件事：$a \times a = a$。我们也可以约束 a 的值只能为 2：$(a-2) \times 1 = 0$。
+
+一个更复杂的例子是确保数字 $a$ 是一个 4-bit 的数字（也称为半字节），换句话说可以用 4 个bit 来表示出 $a$。我们也可以称这个为确保取值范围，因为一个 4-bit 的数字可以代表 $2^4$ 的组合，因而也就是从 0 到 15 范围内的 16 个数字。在十进制数字系统中任何数字都可以表示为以 10 为底并根据对应的指数求幂后的值的和，例如： $123 = 1 \cdot 10^2 + 2 \cdot 10^1 + 3 \cdot 10^0$。同样的一个二进制数可以表示为以 2 为底在对应系数上的求幂值的和，例如，$1011(二进制) = 1 \cdot 2^3 + 0 \cdot 2^2 + 1 \cdot 2^1 + 1 \cdot 2^0$
+
+因而如果 $a$ 是一个 4-bit 的数，那么 $a =  b_3 \cdot 2^3 + b_2 \cdot 2^2 + b_1 \cdot 2^1 + b_0 \cdot 2^0$ 其中 $b_3,b_2,b_1,b_0$ 是布尔值。约束也可以表示为这样的形式：$\textcolor{green}{a} \times \textcolor{blue}{1} = \textcolor{red}{b_3 \cdot 8 + b_2 \cdot 4 + b_1 \cdot 2 + b_0 \cdot 1}$。
+
+并且为了确保 $b_3,b_2,b_1,b_0$ 是布尔值，我们需要增加约束：$\begin{cases}\textcolor{green}{b_0} \times \textcolor{blue}{b_0} = \textcolor{red}{b_0} \\ \textcolor{green}{b_1} \times \textcolor{blue}{b_1} = \textcolor{red}{b_1} \\\textcolor{green}{b_2} \times \textcolor{blue}{b_2} = \textcolor{red}{b_2} \\ \textcolor{green}{b_3} \times \textcolor{blue}{b_3} = \textcolor{red}{b_3} \\ \end{cases}$。更复杂的约束也可以用这种方式表示，以此来确保使用的值满足规则。注意很重要的一点是在当前的计算结构中是不能对 1 进行约束的：$\sum_{i=1}^n c_{l,i} \cdot v_i \times \sum_{i=1}^n c_{r,i} \cdot v_i = \sum _{i=1}^n c_{o,i} \cdot v_i$。
+
+因为值 1 （以及前面约束中的 2）必须通过 $c \cdot v_{one}$ 表达出来，其中 $c$ 可以被固定到 proving key 中，但是因为 $v$ 是由 prover 提供的，所以可以是任何别的值。尽管我们可以通过设置 $c=0$ 来强制 $c \cdot v_{one}$ 变成 0，但是在我们前面受限的构造方法中很难找到一个约束来强制 $v_{one}$ 为 1。于是，Verifier 需要有一种办法来设置 $v_{one}$ 的值。
+
+如果不能根据 verifier 的输入对其进行检查，那么证明的可用性将受到限制。也就是说，虽然知道 prover 将两个值相乘但是并不知道这些值和与或计算结果。尽管有可能在 proving key 中通过硬编码来进行验证一些特定的值（如，乘法运算的结果必须为 12），但这就需要针对每一个想要的 verifier 的输入生成单独的密钥对。因而如果可以由 verifier 而不是 prover 为计算指定一些值（输入或者输出），包括 ​，那证明就可以变得更通用了。
+
+首先，我们看一下要证明的值 $g^{L(s)},g^{R(s)},g^{O(s)}$。因为这里使用了同态加密所以可以增大这些值，例如，我们可以与另一个加密的多项式相加使得值为 $g^{L(s)} \cdot g^{l_v(s)} = g^{L(s) + l_v (s)}$。这样如果我们能够在提供给 prover 的变量多项式中排除必要的一项，verifier 就可以在这一项变量多项式上设置他自己的值，并且使得检查依然能够通过。
+
+因为 verifier 已经可以通过加入 $\alpha$-转换来限制 prover 选择多项式了，所以这个检查结果就很容易得到。因而当消除了它的 $\alpha_s$ 和 $\beta$ 校验和对应的项，这些可变多项式就可以从 proving key 转移到 verification key 当中去了。必要的协议更新为：
+
+- Setup
+  $\cdots$
+  - 将 $n$ 个可变多项式全部分为两组：
+    - verifier 的 $m+1$ 项：$L_v (x) = l_0 (x) + l_1 (x) + \cdots + l_m (x)$，对 $R_v (x)$ 和 $O_v (x)$ 也做同样的计算。这里对于索引 $0$ 保留值 $v_{one} = 1$
+    - prover 的 $n-m$ 项：$L_p (x) = l_{m+1} (x) + \cdots + l_n (x)$，对 $R_p (x)$ 和 $O_p (x)$ 也做同样的计算。
+  - 设置 proving key：$(\{g^{s^k}\}_{k \in [d]}, \{g_l^{l_i (s)},g_r^{r_i (s)},g_o^{o_i (s)},g_l^{\alpha_l l_i (s)},g_r^{\alpha_r r_i (s)},g_o^{\alpha_o o_i (s)},g_l^{\beta l_i (s)},g_r^{\beta l_r (s)},g_o^{\beta o_i (s)}\}_{i \in \{m+1, \cdots, n\}})$
+  - 添加到 verification key：$(\cdots, \{g_l^{l_i (s)},g_l^{r_i (s)},g_l^{o_i (s)}\}_{i \in \{0, \cdots, m\}})$
+- Proving
+  $\cdots$
+  - 为 verifier 的多项式计算 $h(x) = \frac{L(x) \cdot R(x) - O(x)}{t(x)}$，其中 $L(x) = L_v (x) + L_p (x)$，$R(x)$ 和 $O(x)$ 也通过同样的计算获得。
+  - 提供证明：$\{g_l^{L_p(s)},g_r^{R_p(s)},g_o^{O_p(s)},g_l^{\alpha_l L_p(s)},g_r^{\alpha_r R_p(s)},g_o^{\alpha_o O_p(s)},g^{Z(s)}, g^{h(s)}\}$
+- Verification
+  - 为 verifier 的变量多项式赋值，并加 $1$：$g_l^{L_v (s)} = g_l^{l_0 (s)} \cdot \prod_{i=1}^m (g_l^{l_i (s)})^{v_i}$，对 $g_r^{R_v (s)}$ 和 $g_o^{O_v (s)}$ 做同样的计算。
+  - 变量多项式约束检查：$e(g_l^{L_p},g^{\alpha_l}) = e(g_l^{{L'}_p},g)$，对 $g_r^{R_p}$ 和 $g_o^{O_p}$ 做同样的计算。
+  - 变量一致性检查：$e(g_l^{L_p} \cdot g_r^{R_p} \cdot g_o^{O_p},g^{\beta \gamma}) = e(g^Z,g^{\gamma})$
+  - 有效计算检查：$e(g_l^{L_v (s)} \cdot g_l^{L_p},g_r^{R_v (s)} \cdot g_r^{R_p}) = e(g_o^t,g^h) \cdot e(g_o^{O_v (s)} \cdot g_o^{O_p},g)$
+
+注意：根据协议（**单个变量操作数多项式** 的内容）的性质，由多项式 $l_0 (x),r_0 (x),o_0 (x)$ 表示的值 1 已在相应的运算中具备了合适的值，因此不需要再赋值了。这里将原本由 prover 赋值的一些变量改为由拿到 verifier 赋值，使得 prover 不得不与 verifier 保持相同的输入。这不仅解决了 Verifier 参数输入的问题，也间接解决了常数赋值的问题。
+
+自从引入通用计算协议，我们一直放弃了零知识的性质，这是为了让协议的改进变得更简单。至此，我们已经构建了可验证的计算协议。以前我们使用随机数 $\delta$-转换来构造多项式的零知识证明，这种方法能够使得证明与随机数无法区分（零知识这一章节）：$\delta p(s) = t(s) \cdot \delta h(s)$。
+
+通过计算我们可以证明：$L(s) \cdot R(s) - O(s) = p(s)h(s)$。尽管我们可以通过相同的 $\delta$ 乘以多项式的方法来调整解决方案，即提供随机值 $\delta L(s), \delta R(s), \delta^2 O(s), \delta^2 h(s)$，这依然能够通过有效的计算检查来满足配对：$e(g,g)^{\delta^2 L(s)R(s)} = e(g,g)^{\delta^2 (t(s)h(s)+O(s))}$
+
+但是问题是使用相同的 $\delta$ 会妨碍安全性，因为我们在证明中分别用了以下这些值：
+
+- 其他人可以很容易地辨认出两个不同的多项式值是否相同，以此来获得一些知识，即 $g^{\delta L(s)} = g^{\delta R(s)}$
+- $L(s)$ 和 $R(s)$ 的不同值之间潜在的微小关系可能会通过暴力破解来区分开来，例如如果 $L(s) = 5R(s)$，就可以对 $i \in \{1, \cdots, n\}$ 取值反复检验 $g^{L(s)} = (g^{R(s)})^i$，只需要 5 步姐可以揭示出两者 5 倍的区别的关系。同样的暴力破解也可以使用在破解加密值的加法运算上，如 $g^{L(s)} = g^{R(s)+5}$
+- 证明元素之间的其它关系也可能会被发现，例如，如果 $g^{L(s)} = g^{R(s)+5}$，那么也就表示 $\underbrace{\big(L(s)-R(s)-5\big)}_{O'(s)} = 1\cdot 0$
+
+注意：一致性检查优化 使得挖掘数据关系变得更加困难了，但是依然能够发现一些关系 ，且不说 verifier 可以选择特定 $\rho_l$，$\rho_r$ 来为揭示知识提供便利（只要这不是一个多样化的 setup）。
+
+最终，我们需要对每一个多项式的值使用不同的随机数 ( $\delta_s$ ) ，例如：$\delta_l L(s)\cdot \delta_r R(s)-\delta_o O(s)=t(s)\cdot(\Delta \circledast h(s))$
+
+为了解决等式右边不相等的问题，我们不必改变协议，只要修改证明的值 $h(s)$ 即可。这里 $\Delta$ （Delta） 代表为了平衡方程另一侧的随机性而对 $h(s)$ 做的处理，$\circledast$ 代表乘法运算或者加法运算（这个反过来也适应了除法和减法）。
+
+如果我们选择用乘法（$\circledast = \times$）来计算 $\Delta$，也就意味着不太可能有较大的概率可以找到一个 $\Delta$，因为存在随机性设置：
+$$\Delta = \frac{\delta_l L(s) \cdot \delta_r R(s) - \delta_o O(s)}{t(s)h(s)} = \frac{\delta_l \delta_r (L(s) \cdot R(s) - O(s))}{t(s)h(s)} = \delta_l \delta_r$$
+
+但是如前文所述，这个妨碍了零知识的性质，更重要的是这个结构也不再适合 verifier 的输入多项式，因为它们必须是 $\delta_s$ 相应的倍数，这就需要额外的交互了。我们可以尝试把随机数加到变量上：
+
+$$(L(s) + \delta_l) \cdot (R(s) + \delta_r) - (O(s) + \delta_o) = t(s) \cdot (\Delta \times h(s))$$
+
+$$\Delta = \frac{\overbrace{L(s)R(s)-O(s)}^{t(s)h(x)}+\delta_r L(s)+\delta_l R(s)+\delta_l\delta_r-\delta_o}{t(s)h(s)}
+= 1 + \frac{\delta_r L(s)+\delta_l R(s)+\delta_l\delta_r-\delta_o}{t(s)h(s)}$$
+
+但是随机数是不可除尽的。尽管我们可以用 $t(s)h(s)$ 去乘以每一个 $\delta$ ，但由于我们已经乘以 $h(s)$，是组成加密结果的一部分（即 $E(L(s))$ 等），因此在没有使用配对（它的结果在另一个数值空间内）的情况下是不能计算出 $g^{\Delta h(s)}$ 的。同样也不能使用 $s$ 的幂（从 $1$ 到 $d$）的加密值对 $\Delta h(x)$ 的进行加密计算，$\Delta h(x)$ 的阶将达到 $2d$。并且，基于上述同样的原因也无法计算这个随机操作数多项式的值：$g^{L(s)+\delta l t(s)h(s)}$
+
+于是我们应该用加法($\circledast = +$)来使用 ​，因为它可以同态地计算：$\delta_l L(s)\cdot \delta_r R(s)-\delta_o O(s)=t(s)\cdot(\Delta + h(s))$
+$$\Delta \frac{L(s)R(s)-O(s)+\delta_r L(s)+\delta_l R(s)+\delta_l\delta_r-\delta_o-t(s)h(s)}{t(s)} \longrightarrow \Delta = \frac{\delta_r L(s) + \delta_l R(s) + delta_l delta_r - delta_o}{t(s)}$$
+
+分子中的每一项都是 $\delta$ 的倍数，因而我们可以将其与 $t(s)$ 相乘使它可以被分母整除：
+$$
+\begin{align*}
+\big(L(s)+\delta_l t(s)\big)\cdot \big(R(s)+\delta_r t(s)\big)-\big(O(s)+\delta_o t(s)\big) &= t(s)\cdot \big(\Delta + h(s)\big) \\
+\cancel{L(s)R(s)-O(s)} + t(s)\big(\delta_r L(s)+\delta_l R(s)+\delta_l\delta_r t(s)-\delta_o\big) &= t(s)\Delta + \cancel{t(s)h(s)} \\
+\delta_r L(s)+\delta_l R(s)+\delta_l\delta_r t(s)-\delta_o &= \Delta
+\end{align*}
+$$
+
+这样就可以在加密的空间中进行有效计算检查了：$g^{L(s)+\delta_l t(s)} = g^{L(s) \cdot (g^{t(s)})^{\delta_l}}$ 等。
+$$g^{\Delta} = \big(g^{L(s)}\big)^{\delta_r} \cdot \big(g^{R(s)}\big)^{\delta_l} \cdot \big(g^{t(s)}\big)^{\delta_l\delta_r} g^{-\delta_o}
+$$
+
+于是既隐藏了加密值，又使得等式可以通过有效计算的检查。
+$$
+\begin{aligned}
+L\cdot R - O + \textcolor{red}{t\big(\delta_r L + \delta_l R + \delta_l\delta_r t - \delta_o\big)} &= t(s)h + \textcolor{red}{t(s)\big(\delta_r L + \delta_l R + \delta_l\delta_r t - \delta_o\big)}
+\end{aligned}
+$$
+
+这个结构就是统计学上的零知识 因为增加了 $\delta_l, \delta_r, \delta_o$ 的均匀随机倍数。这种方法和 verfier 的操作数也是一致的，即：$g_{l}^{L_p+\delta_{l}t} \cdot g_{l}^{L_v} = g^{L_p+L_v+\delta_{l}t}$。因而当且仅当 prover 使用了 verifier 的值来构造证明（即，$\Delta = \delta_r (L_p + L_v) + \delta_l (R_p + R_v) + \delta_l \delta_r t - \delta_o$），这个有效计算的检查依然是成立的。
+
+为了使得 **变量多项式限制** 和 **变量值一致性** 检查与零知识的修改一致，就有必要去增加以下的参数到 proving key 中：$g_{l}^{t(s)},\, g_{r}^{t(s)},\, g_{o}^{t(s)},\, g_{l}^{\alpha_{l}t(s)},\, g_{r}^{\alpha_{r}t(s)},\, g_{o}^{\alpha_{o}t(s)},\, g_{l}^{\beta t(s)},\, g_{r}^{\beta t(s)},\, g_{o}^{\beta t(s)}$
+
+非常奇怪的是最初的 Pinocchio 协议主要关注可验证的计算，而较少涉及 **零知识** 性质，这其实只需要一点点小修改，这个几乎是没有什么成本的。
+
+## zk-SNARK 协议
+
+在这一步步的改进之后，我们得到了最终版本的 zk-SNARK，又名 Pinocchio 协议 （零知识部分是可选的并用不同的颜色标注出来了），就是：
+
+- Setup
+  - 选择生成元 $g$ 和加密配对 $e$
+  - 将变量总数为 $n$ 其中输入或输出变量数位 $m$ 的函数 $f(u) = y$，转换为阶数为 $d$ 大小为 $n+1$ 的多项式形式（QAP）$(\{l_i (x), r_i(x), o_i(x)\}_{i \in \{0, \cdots, n \}}, t(x))$
+  - 选择随机数 $s, \rho_l, \rho_r, \alpha_l, \alpha_r, \alpha_o, \beta, \gamma$
+  - 设置 $\rho_o = \rho_l \cdot \rho_r$ 和操作数生成元 $g_l = g^{\rho_l},g_r = g^{\rho_r},g_o = g^{\rho_o}$
+  - 设置 proving key：$\Big(\{g^{s^k}\}_{k\in[d]},\, \{g_l^{l_i(s)},\, g_r^{r_i(s)},\, g_o^{o_i(s)}\}_{i\in 0,\dots,n}\Big),\,\big\{g_l^{\alpha_l l_i(s)},\, g_r^{\alpha_r r_i(s)},\, g_o^{\alpha_o o_i(s)},\, g_l^{\beta l_i(s)},\, g_r^{\beta r_i(s)},\, g_o^{\beta o_i(s)}\big\}_{i\in\{m+1,\dots,n\}},\,\\ \textcolor{red}{\big(g_l^{t(s)},\, g_r^{t(s)},\, g_o^{t(s)},\, g_l^{\alpha_l t(s)},\, g_r^{\alpha_r t(s)},\, g_o^{\alpha_o t(s)},\, g_l^{\beta t(s)},\, g_r^{\beta t(s)},\, g_o^{\beta t(s)}\big)}\Big)$
+  - 设置 verification key：$\big(g^{1},\, g_{o}^{t(s)},\, \{g_l^{l_i(s)},\, g_r^{r_i(s)},\, g_o^{o_i(s)}\}_{i\in\{0,\dots,m\}},\, g^{\alpha_l},\, g^{\alpha_r},\, g^{\alpha_o},\, g^{\gamma},\, g^{\beta \gamma}\big)$
+- Proving
+  - 代入输入值 $u$，执行 $f(u)$ 计算获取所有的中间变量值
+  - 把所有未加密的变量多项式赋值给 $L(x) = l_0 (x) + \sum_{i=1}^n v_i \cdot l_i (x)$，并对 $R(x)$ 和 $O(x)$ 做同样的计算
+  - 选择随机数 $\delta_l, \delta_r, \delta_o$
+  - 计算 $h(x) = \frac{L(x)R(x) - O(x)}{t(x)} \textcolor{red}{+ \delta_r L(x) + \delta_l R(x) + \delta_l \delta_r t(x) - \delta_o}$
+  - 将 prover 的变量值赋值给加密的可变多项式并进行零知识的 $\delta$-转换 $g_l^{L_p (s)} = \textcolor{red}{(g_l^{t(s)})^{\delta_l}} \cdot \prod_{i=m+1}^n ((g_l^{l_i (s)})^{v_i})$，再用同样的方式计算 $g_r^{R_p (s)}$ 和 $g_o^{O_p (s)}$
+  - 为其 $\alpha$-变换赋值 $g_l^{{L'}_p (s)} = \textcolor{red}{(g_l^{\alpha_l t(s)})^{\delta_l}} \cdot \prod_{i=m+1}^n ((g_l^{\alpha_l l_i (s)})^{v_i})$，再用同样的方式计算 $g_r^{{R'}_p (s)}$ 和 $g_o^{{O'}_p (s)}$
+  - 为变量值一致性多项式赋值 $g^{Z(s)} = \textcolor{red}{(g_l ^{\beta t(s)})^{\delta_l} (g_r ^{\beta t(s)})^{\delta_r} (g_o ^{\beta t(s)})^{\delta_o}} \cdot \prod_{i=m+1}^n (g_l^{\beta l_i (s)} g_r^{\beta r_i (s)} g_o^{\beta o_i (s)})^{v_i}$
+  - 计算证明 $(g_l ^{L_p (s)},g_r ^{R_p (s)},g_o ^{O_p (s)},g^{h(s)},g_l ^{{L'}_p (s)},g_r ^{{R'}_p (s)},g_o ^{{O'}_p (s)},g^Z)$
+- Verification
+  - 解析提供的证明为 $(g_l ^{L_p},g_r ^{R_p},g_o ^{O_p},g^h,g_l ^{{L'}_p},g_r ^{{R'}_p},g_o ^{{O'}_p},g^Z)$
+  - 将输入或输出赋值给 verifier 的加密多项式并加 $1$：$g_l ^{L_v (s)} = g_l ^{l_0 (s)} \cdot \prod_{i=1}^m (g_l ^{l_i (s)})^{v_i}$,并对 $g_r^{R_v (s)}$ 和 $g_o^{O_v (s)}$ 做相同的计算
+  - 可变多项式约束检查：$e(g_l ^{L_p},g^{\alpha_l}) = e(g_l ^{{L'}_p (s)},g)$，并对 $g_r^{R_p (s)}$ 和 $g_o^{O_p (s)}$ 做同样的计算
+  - 变量值一致性检查：$e(g_l ^{L_p} \cdot g_r ^{R_p} \cdot g_o ^{O_p},g^{\beta \gamma}) = e(g^Z,g^{\gamma})$
+  - 有效的计算检查：$e(g_l ^{L_p} g_l ^{L_v (s)},g_r ^{R_p} g_r ^{R_v (s)}) = e(g_o ^{t(s)},g^h) \cdot e(g_o ^{O_p} g_o ^{O_v (s)},g)$
+
+做个总结，我们最终完成了一个允许证明计算的有效协议：
+
+- 简明 (Succinctly) —— 独立于计算量，证明是恒定的，小尺寸的
+- 非交互性 (Non-interactive) —— 证明只要一经计算就可以在不直接与 prover 交互的前提下使任意数量的 verifier 确信
+- 可论证的知识 (with Argument of Knowledge) —— 对于陈述是正确的这点有不可忽略的概率，即无法构造假证据；并且 prover 知道正确陈述的对应值（即证据），例如，如果陈述是 **B 是 sha256(a) 的结果** 那么就说明 prover 知道一些值 $a$ 能够使得 $B = sha256(a)$ 成立，因为 $B$ 只能够通过 $a$ 的知识计算出来，换句话说就是无法通过 $B$ 来反算出 $a$（假定 $a$ 的熵足够）。
+- 陈述有不可忽略的概率是正确的（这里指 Soundness 可靠性），即，构造假证据是不可行的
+- 零知识( zero-knowledge) —— 很 **难** 从证明中提取任何知识，即，它与随机数无法区分。
+
+所谓 Argument——论证，区别于 Proof —— 证明。Pinocchio 协议是 Argument 而非 Proof。这是因为 Pinocchio 的可靠性是 Computational Soundness，Statistical ZK，这一类的证明系统被称为 Argument。所谓的 Computational Soundness 暗含了这样的事实：如果 Prover 计算能力足够强大的话，可以破坏可靠性。
+
+基于多项式的特殊性质，模运算，同态加密，椭圆曲线密码学，加密配对和发明者的聪明才智才使得这个协议得以实现。
+
+这个协议证明了一个特殊有限执行机制的计算，即在一次运算中可以将几乎任意数量的变量加在一起但是只能执行一次乘法，因而就有机会优化程序以有效地利用这种特性的同时也使用这个结构最大限度地减少计算次数。
+
+为了验证一个证明，verifier 并不需要知道所有的秘密数据，这一点很关键，这就使得任何人都可以以非交互式方式发布和使用正确构造的 verification key。这一点与只能让一个参与者确信证明的 **指定 verifier** 方案相反，因而它的信任是不可转移的。在 zk-SNARK 中，如果不可信或由单方生成密钥对，则可以实现这个属性。
+
+至此，本系列文章的介绍已经全部结束，大家是不是已经对 zk-SNARK 协议（Pinocchio 协议）了如指掌了？其实任何复杂的协议掌握了核心思想，都可以抽丝剥茧将其变得通俗易懂。零知识证明的学习还有很长的路要走，本文只是一个入门的资料，正如文章中所述，零知识证明构造领域正在不断发展，不断的有新的研究突破呈现在我们面前。这是一个非常有趣的领域，期待我们后续的深入学习。
+
+
+
+    </div>
+</article>
+
+
+<script>
+// 等页面加载完成后执行
+window.addEventListener('load', function() {
+  const content = document.querySelector('.content-article');
+  const tocList = document.getElementById('toc-list');
+  const tocPanel = document.getElementById('toc-panel');
+  
+  // 如果没有文章内容，隐藏目录
+  if (!content || !tocList) {
+    if (tocPanel) tocPanel.style.display = 'none';
+    return;
+  }
+
+  // 获取所有h2、h3、h4标题（Markdown的##/###/####）
+  const headers = content.querySelectorAll('h2, h3, h4');
+  if (headers.length === 0) {
+    if (tocPanel) tocPanel.style.display = 'none';
+    return;
+  }
+
+  // 清空目录
+  tocList.innerHTML = '';
+
+  // 生成目录项
+  headers.forEach((header, index) => {
+    // 给标题加id（如果Hexo没自动生成的话）
+    if (!header.id) {
+      header.id = 'toc-' + index;
+    }
+
+    const li = document.createElement('li');
+    // 根据标题级别加类名，实现缩进
+    if (header.tagName === 'H3') {
+      li.classList.add('toc-level-3');
+    } else if (header.tagName === 'H4') {
+      li.classList.add('toc-level-4');
+    }
+
+    const a = document.createElement('a');
+    a.href = '#' + header.id;
+    a.textContent = header.textContent;
+    // 点击跳转（平滑滚动）
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    li.appendChild(a);
+    tocList.appendChild(li);
+  });
+
+  // 滚动监听，高亮当前目录项
+  const tocItems = tocList.querySelectorAll('li');
+  const headerList = Array.from(headers);
+
+  window.addEventListener('scroll', function() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    let currentIndex = 0;
+
+    // 找到当前滚动位置对应的标题
+    for (let i = 0; i < headerList.length; i++) {
+      const headerTop = headerList[i].offsetTop - 100;
+      if (scrollTop >= headerTop) {
+        currentIndex = i;
+      }
+    }
+
+    // 高亮当前项
+    tocItems.forEach((item, index) => {
+      if (index === currentIndex) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  });
+});
+</script>
+
+
+                </div>
+                <aside class="col-md-4 gal-left" id="sidebar">
+    <!-- 🔥 仅文章详情页（layout=post）显示目录，隐藏其他模块 -->
+    
+        <div class="panel panel-gal" id="toc-panel">
+          <div class="panel-heading">
+            <i class="fa fa-list-ul"></i> 文章目录
+            <span class="panel-toggle" data-toggle="collapse" data-target="#toc-list">
+              <i class="fa fa-chevron-up"></i>
+            </span>
+          </div>
+          <ul class="list-group collapse in" id="toc-list">
+            <!-- JS会自动在这里生成目录项 -->
+          </ul>
+        </div>
+    
+</aside>
+            </div>
+        </div>
+    </div>
+    <footer id="gal-footer">
+    <div class="container">
+        Copyright © 2018 Dorange Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>.&nbsp;Theme by <a href="https://github.com/ZEROKISEKI" target="_blank">AONOSORA</a>
+    </div>
+</footer>
+
+<!-- 回到顶端 -->
+<div id="gal-gotop">
+    <i class="fa fa-angle-up"></i>
+</div>
+</body>
+
+<script src="/SecurityBlog.github.io/js/activate-power-mode.js"></script>
+
+<script>
+
+    // 配置highslide
+	hs.graphicsDir = '/js/highslide/graphics/'
+    hs.outlineType = "rounded-white";
+    hs.dimmingOpacity = 0.8;
+    hs.outlineWhileAnimating = true;
+    hs.showCredits = false;
+    hs.captionEval = "this.thumb.alt";
+    hs.numberPosition = "caption";
+    hs.align = "center";
+    hs.transitions = ["expand", "crossfade"];
+    hs.lang.number = '共%2张图, 当前是第%1张';
+    hs.addSlideshow({
+      interval: 5000,
+      repeat: true,
+      useControls: true,
+      fixedControls: "fit",
+      overlayOptions: {
+        opacity: 0.75,
+        position: "bottom center",
+        hideOnMouseOut: true
+      }
+    })
+
+    // 初始化aos
+    AOS.init({
+      duration: 1000,
+      delay: 0,
+      easing: 'ease-out-back'
+    });
+
+</script>
+<script>
+	POWERMODE.colorful = 'true';    // make power mode colorful
+	POWERMODE.shake = 'true';       // turn off shake
+	// TODO 这里根据具体情况修改
+	document.body.addEventListener('input', POWERMODE);
+</script>
+<script>
+    window.slideConfig = {
+      prefix: '/SecurityBlog.github.io/imgs/slide/background',
+      ext: 'jpg',
+      maxCount: '14'
+    }
+</script>
+
+<script src="/SecurityBlog.github.io/js/hs.js"></script>
+<script src="/SecurityBlog.github.io/js/blog.js"></script>
+
+
+
+
+</html>
