@@ -115,6 +115,35 @@
 	})
 
 	// ------- 处理返回顶端结束 ----------
+
+	// ------- 代码块: 语言标签 + 一键复制 ----
+
+	$('figure.highlight').each(function () {
+		var fig = $(this)
+		var lang = fig.attr('class').replace('highlight', '').trim() || 'text'
+		// 头部要留在原地, 所以把横向滚动挪进内层容器
+		fig.children('table').wrap('<div class="code-scroll"></div>')
+		fig.prepend('<div class="code-header"><span class="code-lang">' + lang + '</span>' +
+			'<button type="button" class="code-copy">复制</button></div>')
+	})
+
+	$(document).on('click', '.code-copy', function () {
+		var btn = $(this)
+		var code = btn.closest('figure').find('td.code .line').map(function () {
+			return $(this).text()
+		}).get().join('\n')
+		function flash(text, ok) {
+			btn.text(text)
+			if (ok) { btn.addClass('copied') }
+			setTimeout(function () { btn.text('复制').removeClass('copied') }, 1500)
+		}
+		// clipboard 只在 https / localhost 下可用
+		if (!navigator.clipboard) { return flash('请手动复制', false) }
+		navigator.clipboard.writeText(code).then(function () { flash('已复制', true) }, function () { flash('复制失败', false) })
+	})
+
+	// ------- 代码块处理结束 ----------------
+
 	
 })($)
 
