@@ -200,7 +200,7 @@
 
 		// ---- Live2D: 懒加载 ~790KB 运行时, 成功才把贴纸换成模型 ----
 		// 宽度不够时 CSS 已经把 #doro-pet 隐藏了, 没必要再去下运行时
-		if (window.doroLive2D && matchMedia('(min-width: 901px)').matches) {
+		function loadDoroLive2D() {
 			window.doroLive2D.js.reduce(function (chain, src) {
 				return chain.then(function () { return $.getScript(src) })
 			}, $.Deferred().resolve().promise())
@@ -234,6 +234,21 @@
 					// 保持静态贴纸, 不打扰访客
 					if (window.console) { console.warn('doro live2d 加载失败, 回退静态贴纸:', err) }
 				})
+		}
+
+		if (window.doroLive2D) {
+			var wide = matchMedia('(min-width: 901px)')
+			if (wide.matches) {
+				loadDoroLive2D()
+			} else {
+				// 窄窗口打开后再拉宽时补一次, 否则会一直停在贴纸形态
+				wide.addEventListener('change', function once(e) {
+					if (e.matches) {
+						wide.removeEventListener('change', once)
+						loadDoroLive2D()
+					}
+				})
+			}
 		}
 	}
 
