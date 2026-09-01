@@ -166,6 +166,7 @@
 			h < 18 ? '下午好' :
 			h < 23 ? '晚上好' : '夜深了, 早点休息'
 
+		// 先挂静态贴纸: 秒出, 且 WebGL 不可用/脚本加载失败时就是最终形态
 		var pet = $(
 			'<div id="doro-pet">' +
 			'<div class="doro-bubble"></div>' +
@@ -176,6 +177,7 @@
 
 		var bubble = pet.find('.doro-bubble')
 		var bubbleTimer
+		var doroModel = null
 
 		function doroSay(text) {
 			bubble.text(text).addClass('show')
@@ -185,14 +187,54 @@
 
 		setTimeout(function () { doroSay(greet) }, 1200)
 
-		pet.find('.doro-body').on('click', function () {
+		// 事件委托: 贴纸换成 canvas 之后依然生效
+		pet.on('click', '.doro-body, .doro-hit', function () {
 			doroSay(doroLines[Math.floor(Math.random() * doroLines.length)])
+			if (doroModel) { doroModel.expression() }
 		})
 
 		pet.find('.doro-close').on('click', function () {
 			sessionStorage.setItem('doro-hidden', '1')
 			pet.remove()
 		})
+
+		// ---- Live2D: 懒加载 ~790KB 运行时, 成功才把贴纸换成模型 ----
+		// 宽度不够时 CSS 已经把 #doro-pet 隐藏了, 没必要再去下运行时
+		if (window.doroLive2D && matchMedia('(min-width: 901px)').matches) {
+			window.doroLive2D.js.reduce(function (chain, src) {
+				return chain.then(function () { return $.getScript(src) })
+			}, $.Deferred().resolve().promise())
+				.then(function () {
+					var canvas = $('<canvas class="doro-canvas"></canvas>').insertAfter(bubble)[0]
+					$('<div class="doro-hit"></div>').insertAfter(canvas)
+					var app = new PIXI.Application({
+						view: canvas,
+						width: 200,
+						height: 230,
+						backgroundAlpha: 0,
+						resolution: window.devicePixelRatio || 1,
+						autoDensity: true
+					})
+					return PIXI.live2d.Live2DModel.from(window.doroLive2D.model).then(function (model) {
+						model.anchor.set(0.5, 0.5)
+						model.position.set(app.view.width / 2 / app.renderer.resolution, app.view.height / 2 / app.renderer.resolution)
+						model.scale.set(Math.min(200 / model.width, 230 / model.height))
+						app.stage.addChild(model)
+						doroModel = model
+						pet.find('.doro-body').remove()
+
+						// 视线跟着鼠标走: focus 要的是 canvas 内坐标
+						$(document).on('mousemove.doro', function (e) {
+							var r = canvas.getBoundingClientRect()
+							model.focus(e.clientX - r.left, e.clientY - r.top)
+						})
+					})
+				})
+				.catch(function (err) {
+					// 保持静态贴纸, 不打扰访客
+					if (window.console) { console.warn('doro live2d 加载失败, 回退静态贴纸:', err) }
+				})
+		}
 	}
 
 	// ------- 博客宠物结束 -------------------
