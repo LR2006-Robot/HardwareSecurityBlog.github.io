@@ -144,6 +144,60 @@
 
 	// ------- 代码块处理结束 ----------------
 
+	// ------- 博客宠物 doro ------------------
+
+	// 关掉只记 sessionStorage: 本次浏览不再打扰, 下次访问自己回来, 就不用再做一个召唤按钮
+	if (window.doroImg && !sessionStorage.getItem('doro-hidden')) {
+		var doroLines = [
+			'doro~',
+			'又在看什么高深的东西呀',
+			'这篇公式好多, 头晕晕的',
+			'摸鱼一下也没关系的啦',
+			'点我干嘛, 我又不会写代码',
+			'记得点右上角的复制按钮哦',
+			'咕噜咕噜...',
+			'今天也要加油鸭'
+		]
+
+		var h = new Date().getHours()
+		var greet = h < 6 ? '这么晚还不睡?' :
+			h < 11 ? '早上好呀' :
+			h < 14 ? '中午啦, 该吃饭了' :
+			h < 18 ? '下午好' :
+			h < 23 ? '晚上好' : '夜深了, 早点休息'
+
+		var pet = $(
+			'<div id="doro-pet">' +
+			'<div class="doro-bubble"></div>' +
+			'<img class="doro-body" src="' + window.doroImg + '" alt="doro" draggable="false">' +
+			'<button type="button" class="doro-close" title="今天不想看到 doro">&times;</button>' +
+			'</div>'
+		).appendTo('body')
+
+		var bubble = pet.find('.doro-bubble')
+		var bubbleTimer
+
+		function doroSay(text) {
+			bubble.text(text).addClass('show')
+			clearTimeout(bubbleTimer)
+			bubbleTimer = setTimeout(function () { bubble.removeClass('show') }, 4000)
+		}
+
+		setTimeout(function () { doroSay(greet) }, 1200)
+
+		pet.find('.doro-body').on('click', function () {
+			doroSay(doroLines[Math.floor(Math.random() * doroLines.length)])
+		})
+
+		pet.find('.doro-close').on('click', function () {
+			sessionStorage.setItem('doro-hidden', '1')
+			pet.remove()
+		})
+	}
+
+	// ------- 博客宠物结束 -------------------
+
+
 	
 })($)
 
