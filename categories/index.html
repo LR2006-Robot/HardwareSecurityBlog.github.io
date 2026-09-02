@@ -150,9 +150,7 @@
     position: relative !important;
 }
     </style>
-<!-- hexo injector head_end start -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
-<!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.2"></head>
+<meta name="generator" content="Hexo 8.1.2"></head>
 
 <!-- 🔥 目录吸顶JS脚本（和你参考网站完全一致） -->
 <script>
@@ -195,11 +193,38 @@ $(window).scroll(function() {
                 
                 <!-- 这里background使用imgs/${logo_image}(路径文件名) -->
                 <style>
+                    /* 猫躲在导航栏底边线后面, 平时只露耳朵尖;
+                       鼠标移上来就爬上来, 两只爪子正好落在底边线上 */
                     #gal-header .navbar-brand {
-                        width: 200px;
-                        height: 50px;
+                        position: relative;
                         display: block;
-                        background: url('/SecurityBlog.github.io/imgs/logo.png') no-repeat;
+                        width: 120px;
+                        height: 54px;   /* 和导航栏等高, 它的底边就是猫抓的那条"边框" */
+                        overflow: hidden;
+                        background: none;
+                    }
+
+                    #gal-header .navbar-brand::before {
+                        content: '';
+                        position: absolute;
+                        left: 8px;
+                        bottom: 0;
+                        width: 48px;
+                        height: 48px;
+                        background: url('/SecurityBlog.github.io/imgs/logo.png') no-repeat center / contain;
+                        /* 静止: 往下推 37px, 露出的 11px 刚好是两只耳朵(图里耳朵占顶部 6%~15%) */
+                        translate: 0 37px;
+                        transition: translate 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    }
+
+                    #gal-header .navbar-brand:hover::before {
+                        translate: 0 0;
+                    }
+
+                    @media (prefers-reduced-motion: reduce) {
+                        #gal-header .navbar-brand::before {
+                            transition: none;
+                        }
                     }
                 </style>
                     
@@ -238,11 +263,11 @@ $(window).scroll(function() {
                         
                         
                         <li>
-                            <a href="/SecurityBlog.github.io/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/">密码学数学原理</a>
+                            <a href="/SecurityBlog.github.io/categories/Nday%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">Nday漏洞复现</a>
                         </li>
                         
                         <li>
-                            <a href="/SecurityBlog.github.io/categories/Nday%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">Nday漏洞复现</a>
+                            <a href="/SecurityBlog.github.io/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/">密码学数学原理</a>
                         </li>
                         
                         <li role="separator" class="divider"></li>
@@ -267,15 +292,15 @@ $(window).scroll(function() {
                         
                         
                         <li>
-                            <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>
-                        </li>
-                        
-                        <li>
-                            <a href="/SecurityBlog.github.io/tags/ZKP/">ZKP</a>
-                        </li>
-                        
-                        <li>
                             <a href="/SecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE漏洞复现</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/%E5%AE%8C%E6%95%B4%E6%94%BB%E5%87%BB%E9%93%BE/">完整攻击链</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>
                         </li>
                         
                         <li role="separator" class="divider"></li>
@@ -384,7 +409,13 @@ $(window).scroll(function() {
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/SecurityBlog.github.io/2026/08/23/ZKP%E5%8E%9F%E7%90%86%EF%BC%9A%E4%BB%8E%E7%AE%80%E5%8D%95%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%88%B0ZK-SNARK%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90/">ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</a>
+                    <a href="/SecurityBlog.github.io/2026/09/02/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%89%BF%E8%AF%BA%E5%8E%9F%E7%90%86%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8/"></a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/SecurityBlog.github.io/2026/08/22/ZKP%E5%8E%9F%E7%90%86%EF%BC%9A%E4%BB%8E%E7%AE%80%E5%8D%95%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%88%B0ZK-SNARK%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90/">ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</a>
                 </span>
             </li>
             
@@ -412,13 +443,19 @@ $(window).scroll(function() {
             
             <li class="list-group-item">
                 <span class="post-title">
-                    <a href="/SecurityBlog.github.io/2026/08/23/ZKP%E5%8E%9F%E7%90%86%EF%BC%9A%E4%BB%8E%E7%AE%80%E5%8D%95%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%88%B0ZK-SNARK%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90/">ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</a>
+                    <a href="/SecurityBlog.github.io/2026/09/02/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%89%BF%E8%AF%BA%E5%8E%9F%E7%90%86%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8/"></a>
                 </span>
             </li>
             
             <li class="list-group-item">
                 <span class="post-title">
                     <a href="/SecurityBlog.github.io/2026/05/14/%E5%9F%BA%E4%BA%8ECVE-2023-21563%E6%BC%8F%E6%B4%9E%E7%A0%B4%E8%A7%A3BitLocker%E5%8A%A0%E5%AF%86/">基于 CVE-2023-21563 漏洞破解 BitLocker 加密</a>
+                </span>
+            </li>
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/SecurityBlog.github.io/2026/08/22/ZKP%E5%8E%9F%E7%90%86%EF%BC%9A%E4%BB%8E%E7%AE%80%E5%8D%95%E5%A4%9A%E9%A1%B9%E5%BC%8F%E5%88%B0ZK-SNARK%E8%AF%A6%E7%BB%86%E8%A7%A3%E6%9E%90/">ZKP 原理：从简单多项式到 ZK-SNARK 详细解析</a>
                 </span>
             </li>
             
@@ -436,6 +473,13 @@ $(window).scroll(function() {
             <i class="fa fa-chevron-circle-up panel-toggle"></i>
         </div>
         <ul class="list-group list-group-flush">
+            
+            <li class="list-group-item">
+                <span class="post-title">
+                    <a href="/SecurityBlog.github.io/archives/2026/09/">2026 年 9 月</a>
+                </span>
+                <span class="badge">1</span>
+            </li>
             
             <li class="list-group-item">
                 <span class="post-title">
@@ -468,7 +512,7 @@ $(window).scroll(function() {
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
                 <span class="post-title">文章数目</span>
-                <span class="badge">2</span>
+                <span class="badge">3</span>
             </li>
             <li class="list-group-item">
                 <span class="post-title">标签数目</span>
