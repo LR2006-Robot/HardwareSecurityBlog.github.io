@@ -12,7 +12,7 @@
     
     
     
-    <title>Fiex Reed</title>
+    <title>密码学承诺原理以及应用 | Fiex Reed</title>
     <link href="https://lr2006-robot.github.io/SecurityBlog.github.io" rel="prefetch" />
 
     
@@ -150,7 +150,9 @@
     position: relative !important;
 }
     </style>
-<meta name="generator" content="Hexo 8.1.2"></head>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.2"></head>
 
 <!-- 🔥 目录吸顶JS脚本（和你参考网站完全一致） -->
 <script>
@@ -193,42 +195,46 @@ $(window).scroll(function() {
                 
                 <!-- 这里background使用imgs/${logo_image}(路径文件名) -->
                 <style>
-                    /* 猫躲在导航栏底边线后面, 平时只露耳朵尖;
-                       鼠标移上来就爬上来, 两只爪子正好落在底边线上 */
+                    /* 一群猫躲在导航栏底边线后面, 平时只露耳朵;
+                       鼠标移上来就依次爬上来, 爪子落在底边线上 */
                     #gal-header .navbar-brand {
                         position: relative;
                         display: block;
-                        width: 120px;
+                        width: 240px;
                         height: 54px;   /* 和导航栏等高, 它的底边就是猫抓的那条"边框" */
                         overflow: hidden;
                         background: none;
                     }
 
-                    #gal-header .navbar-brand::before {
-                        content: '';
+                    #gal-header .navbar-brand .cat {
                         position: absolute;
-                        left: 8px;
                         bottom: 0;
-                        width: 48px;
-                        height: 48px;
+                        left: calc(6px + var(--i) * 40px);   /* 40px 间距, 54px 宽 -> 互相压一点, 更像一群 */
+                        width: 54px;
+                        height: 54px;
                         background: url('/SecurityBlog.github.io/imgs/logo.png') no-repeat center / contain;
-                        /* 静止: 往下推 37px, 露出的 11px 刚好是两只耳朵(图里耳朵占顶部 6%~15%) */
-                        translate: 0 37px;
-                        transition: translate 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        /* 静止: 往下推 43px, 露出的 11px 刚好是耳朵(图里耳朵占顶部 6%~15%) */
+                        translate: 0 43px;
+                        transition: translate 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
 
-                    #gal-header .navbar-brand:hover::before {
+                    /* 延迟只写在 hover 上: 上来时一只只错开, 缩回去时一起走 */
+                    #gal-header .navbar-brand:hover .cat {
                         translate: 0 0;
+                        transition-delay: calc(var(--i) * 60ms);
                     }
 
                     @media (prefers-reduced-motion: reduce) {
-                        #gal-header .navbar-brand::before {
+                        #gal-header .navbar-brand .cat {
                             transition: none;
+                        }
+                        #gal-header .navbar-brand:hover .cat {
+                            transition-delay: 0s;
                         }
                     }
                 </style>
                     
-                <div class="navbar-brand"></div>
+                <div class="navbar-brand"><span class="cat" style="--i: 0"></span><span class="cat" style="--i: 1"></span><span class="cat" style="--i: 2"></span><span class="cat" style="--i: 3"></span><span class="cat" style="--i: 4"></span></div>
                 
             </a>
         </div>
@@ -263,11 +269,11 @@ $(window).scroll(function() {
                         
                         
                         <li>
-                            <a href="/SecurityBlog.github.io/categories/Nday%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">Nday漏洞复现</a>
+                            <a href="/SecurityBlog.github.io/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/">密码学数学原理</a>
                         </li>
                         
                         <li>
-                            <a href="/SecurityBlog.github.io/categories/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/">密码学数学原理</a>
+                            <a href="/SecurityBlog.github.io/categories/Nday%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">Nday漏洞复现</a>
                         </li>
                         
                         <li role="separator" class="divider"></li>
@@ -292,15 +298,15 @@ $(window).scroll(function() {
                         
                         
                         <li>
-                            <a href="/SecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE漏洞复现</a>
-                        </li>
-                        
-                        <li>
-                            <a href="/SecurityBlog.github.io/tags/%E5%AE%8C%E6%95%B4%E6%94%BB%E5%87%BB%E9%93%BE/">完整攻击链</a>
-                        </li>
-                        
-                        <li>
                             <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/ZKP/">ZKP</a>
+                        </li>
+                        
+                        <li>
+                            <a href="/SecurityBlog.github.io/tags/CVE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">CVE漏洞复现</a>
                         </li>
                         
                         <li role="separator" class="divider"></li>
@@ -335,16 +341,25 @@ $(window).scroll(function() {
         <i class="fa fa-home"></i>
         <a href="https://lr2006-robot.github.io/SecurityBlog.github.io">Fiex Reed</a>
         >
-        <span></span>
+        <span>密码学承诺原理以及应用</span>
     </div>
     <!-- 大型设备详细文章 -->
     <div class="hidden-xs">
         <div class="title-article">
             <h1>
-                <a href="/SecurityBlog.github.io/2026/09/02/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%89%BF%E8%AF%BA%E5%8E%9F%E7%90%86%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8/"></a>
+                <a href="/SecurityBlog.github.io/2026/09/02/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%89%BF%E8%AF%BA%E5%8E%9F%E7%90%86%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8/">密码学承诺原理以及应用</a>
             </h1>
         </div>
         <div class="tag-article">
+            
+            <span class="label label-gal">
+                <i class="fa fa-tags"></i>
+                
+                <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>, 
+                
+                <a href="/SecurityBlog.github.io/tags/ZKP/">ZKP</a>
+                
+            </span>
             
             <span class="label label-gal">
                 <i class="fa fa-calendar"></i> 2026-09-02
@@ -357,7 +372,7 @@ $(window).scroll(function() {
         <center>
             <div class="title-article">
                 <h4>
-                    <a href="/SecurityBlog.github.io/2026/09/02/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%89%BF%E8%AF%BA%E5%8E%9F%E7%90%86%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8/"></a>
+                    <a href="/SecurityBlog.github.io/2026/09/02/%E5%AF%86%E7%A0%81%E5%AD%A6%E6%89%BF%E8%AF%BA%E5%8E%9F%E7%90%86%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8/">密码学承诺原理以及应用</a>
                 </h4>
             </div>
             <p>
@@ -365,12 +380,36 @@ $(window).scroll(function() {
             </p>
             <p>
                 
+                <i class="fa fa-tags"></i>
+                
+                <a href="/SecurityBlog.github.io/tags/%E5%AF%86%E7%A0%81%E5%AD%A6/">密码学</a>, 
+                
+                <a href="/SecurityBlog.github.io/tags/ZKP/">ZKP</a>
+                
+                
                 
             </p>
         </center>
     </div>
     <div class="content-article">
-        
+        <p>本章将系统介绍密码学承诺方案的基本概念、两阶段运行机制与隐藏性、绑定性两大核心性质，梳理哈希、ElGamal、Pedersen、Sigma 等主流方案的构造原理以及数学逻辑，对比其安全特性与适用场景，并拓展介绍零知识承诺变体与典型应用领域，帮助快速了解密码学承诺技术以及为后面深入学习零知识证明提供帮助。</p>
+<h2 id="密码学承诺简介">密码学承诺简介</h2>
+<p>承诺方案(Commitment Scheme)是一个重要的密码学原语(cryptographic primitive), 承诺方案是一种加密协议，允许发送者承诺一个选择的值（或声明），同时对接收者保持隐藏，而接收者能够在稍后验证所承诺的值。承诺方案通常可以分为两个阶段。</p>
+<ul>
+<li>承诺阶段(Commitment Phase)：发现方发送一个承诺值给接收方，这个值是发送方选择的，接收方无法知道这个值的具体内容。</li>
+<li>揭示阶段(Opening Phase)：发送方打开这个承诺，接收方可以验证这个值的内容。</li>
+</ul>
+<p>密码学承诺方案在多个领域有广泛的应用，下面介绍一些应用场景：</p>
+<ul>
+<li>电子投票：在电子投票系统中，承诺方案可以确保选民在投票时能够保密其选择，同时在投票结束后能够验证其投票的有效性。</li>
+<li>电子拍卖：在拍卖中，承诺方案可以让竞标者在拍卖开始时提交他们的出价，而不透露具体的出价金额。拍卖结束时，所有出价可以被揭示并验证，以确保竞标者的出价是诚实的。</li>
+<li>安全多方计算：在多方计算中，参与者可以使用承诺方案来承诺他们的输入，而不需要在计算过程中透露这些输入。这有助于保护参与者的隐私。</li>
+<li>数字签名：承诺方案可以用于构建数字签名方案，确保消息的完整性和不可否认性。</li>
+<li>区块链和加密货币：在区块链技术中，承诺方案可以用于确保交易的隐私和安全性。例如，某些隐私币（如Zcash）使用承诺方案来隐藏交易金额和发送者信息。</li>
+<li>身份验证：承诺方案可以用于身份验证协议中，允许用户在不透露其身份信息的情况下证明其身份。</li>
+<li>游戏理论：在博弈论中，承诺方案可以用于设计机制，使参与者能够在不透露其策略的情况下进行合作或竞争。</li>
+</ul>
+
     </div>
 </article>
 
